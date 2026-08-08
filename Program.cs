@@ -130,6 +130,8 @@ app.MapPost("/api/search", async (HttpContext ctx) =>
         }).ToArray();
     if (input.AggregationFilters is { Length: > 0 })
         req["aggregationFilters"] = input.AggregationFilters;
+    if (input.Spelling)
+        req["queryAlterationOptions"] = new { enableSuggestion = true, enableModification = false };
 
     var payload = new { requests = new[] { req } };
 
@@ -224,6 +226,7 @@ record SearchInput
     public SortField[]? Sort               { get; init; }
     public string[]?    Aggregations       { get; init; }
     public string[]?    AggregationFilters { get; init; }
+    public bool         Spelling           { get; init; }
     public int          From               { get; init; }
     public int          Size               { get; init; } = 25;
 }
