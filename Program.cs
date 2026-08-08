@@ -220,9 +220,11 @@ app.MapGet("/api/update-check", async () =>
     {
         using var msg = new HttpRequestMessage(HttpMethod.Get,
             $"https://api.github.com/repos/{repo}/releases/latest");
-        msg.Headers.UserAgent.ParseAdd("MicrosoftSearchQueryTool");
+        msg.Headers.UserAgent.ParseAdd($"MicrosoftSearchQueryTool/{appVersion}");
         msg.Headers.Accept.ParseAdd("application/vnd.github+json");
-        var resp = await http.SendAsync(msg);
+        // Bound the call so a slow/unreachable GitHub can never hang the request.
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+        var resp = await http.SendAsync(msg, cts.Token);
         // No releases published yet (404) or rate-limited -> just report "no update".
         if (!resp.IsSuccessStatusCode)
             return Results.Json(new { current = appVersion, latest = (string?)null, updateAvailable = false, url = repoUrl });

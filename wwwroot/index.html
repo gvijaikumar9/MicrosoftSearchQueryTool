@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#1e1e1e; --panel:#141414; --panel2:#1e1e1e; --border:#3c3c3c;
-    --text:#d4d4d4; --muted:#9a9a9a; --accent:#3794ff; --mark:#6db0ff;
+    --text:#d4d4d4; --muted:#9a9a9a; --accent:#3794ff;
     --green:#4ec9b0; --amber:#d7ba7d; --purple:#c586c0; --str:#ce9178;
     --mono:"Cascadia Code","Consolas",ui-monospace,monospace;
     --ui:"Segoe UI",system-ui,-apple-system,sans-serif;
@@ -18,7 +18,6 @@
   a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
   .wrap{max-width:1600px;margin:0 auto;padding:22px 24px 60px;position:relative;z-index:1}
   header{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .mk{width:42px;height:42px;border-radius:11px;background:#141b26;color:var(--mark);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:18px;border:1px solid #2a3543;flex:none}
   .htxt{flex:1;min-width:220px}
   h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em}
   .tag{color:var(--muted);font-size:12.5px;margin:2px 0 0}
@@ -33,30 +32,29 @@
   .sbtn{background:transparent;border:0;color:var(--muted);width:38px;height:38px;border-radius:8px;display:grid;place-items:center;cursor:pointer;font-size:16px;line-height:1}
   .sbtn:hover{background:var(--panel2);color:var(--text)}
   .sbrand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;color:var(--text);white-space:nowrap}
-  .sbrand .mk{width:30px;height:30px;border-radius:8px;background:#141b26;color:var(--mark);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:14px;border:1px solid #2a3543}
-  .sbadge{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:650;color:#4fc1ff;background:#12233c;border:1px solid #1f4b6e;padding:4px 11px;border-radius:100px;white-space:nowrap}
   .sbtag{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12.5px;font-weight:400}
   .updpill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:100px;white-space:nowrap}
   .updpill.on{color:#04121f;background:var(--accent);border:1px solid var(--accent);cursor:pointer}
   .updpill.on:hover{filter:brightness(1.08)}
   .updpill.ok{color:var(--muted);background:var(--panel2);border:1px solid var(--border);cursor:default}
-  .fly-ver{font-size:11px;color:var(--muted);padding:8px 10px 4px;border-top:1px solid var(--border);margin-top:4px}
-  .sbadge .dot{width:6px;height:6px;border-radius:50%;background:#89d185}
+  .fly-ver{display:block;font-size:11px;color:var(--muted);padding:8px 10px 4px;border-top:1px solid var(--border);margin-top:4px;text-decoration:none}
+  .fly-ver::after{content:" \00B7 View source on GitHub \2197";color:var(--accent)}
+  .fly-ver:hover{color:var(--accent)}
   .sspace{flex:1}
   .avatar{background:#3a3a3a;color:#fff;border-radius:50%;font-weight:700;font-size:13px;width:34px;height:34px}
   .avatar.on,.avatar:hover{background:var(--accent);color:#04121f}
   .flyout{position:absolute;top:52px;min-width:224px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:6px;display:none;z-index:30;box-shadow:0 22px 55px -22px rgba(0,0,0,.7)}
   .flyout.on{display:block}
-  #m-apps{left:0} #m-set{right:44px} #m-acct{right:2px}
+  #m-set{right:44px} #m-acct{right:2px}
   .fly-h{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 10px 4px}
   .fly-id{font-size:12px;color:var(--text);padding:2px 10px 8px;font-family:var(--mono);word-break:break-all;border-bottom:1px solid var(--border);margin-bottom:4px}
   .flyout a{display:block;padding:8px 10px;border-radius:6px;color:var(--text);font-size:13px;cursor:pointer;text-decoration:none}
   .flyout a:hover{background:var(--panel2);text-decoration:none}
-  @media(max-width:640px){.sbadge,.sbtag{display:none}}
+  @media(max-width:640px){.sbtag{display:none}}
   /* Light theme */
   :root[data-theme="light"]{
     --bg:#f3f4f6; --panel:#ffffff; --panel2:#eef0f3; --border:#dfe1e6;
-    --text:#1b1b1f; --muted:#5c6b7a; --accent:#0f6cbd; --mark:#0f6cbd;
+    --text:#1b1b1f; --muted:#5c6b7a; --accent:#0f6cbd;
     --green:#0a7d4b; --amber:#8a6d00; --purple:#8250df; --str:#a31515;
   }
   :root[data-theme="light"] .j-key{color:#0451a5}
@@ -67,8 +65,6 @@
   :root[data-theme="light"] body::before{background:radial-gradient(closest-side,rgba(15,108,189,.10),transparent 70%)}
   :root[data-theme="light"] .avatar{background:#e1e3e6;color:#1b1b1f}
   :root[data-theme="light"] .avatar.on,:root[data-theme="light"] .avatar:hover{background:var(--accent);color:#fff}
-  :root[data-theme="light"] .sbrand .mk{background:#eaf2fb;color:#0f6cbd;border-color:#cfe0f4}
-  :root[data-theme="light"] .sbadge{color:#0f6cbd;background:#eaf2fb;border-color:#cfe0f4}
   :root[data-theme="light"] .run{color:#fff}
   :root[data-theme="light"] .kv .k{color:#8a6d00}
   .signin{background:var(--accent);color:#04121f;border:0;border-radius:20px;padding:6px 16px;font-weight:600;font-size:12px;cursor:pointer}
@@ -100,7 +96,7 @@
   @media(min-width:821px){
     html,body{height:100%}
     .wrap{height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:16px}
-    .suitebar,.subtitle,.qbar,.kql,.opts{flex:none}
+    .suitebar,.qbar,.kql,.opts{flex:none}
     .layout{flex:1;min-height:0}
     .side{overflow-y:auto;scrollbar-gutter:stable}
     .main{display:flex;flex-direction:column;min-height:0}
@@ -217,7 +213,6 @@
   footer code{font-family:var(--mono);color:#bd9}
   footer>span{overflow:hidden;text-overflow:ellipsis;min-width:0}
   footer>a{color:var(--accent);font-weight:600;white-space:nowrap}
-  .subtitle{color:var(--muted);font-size:13px;margin:0 0 14px}
   .dlg{border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text);max-width:620px;width:calc(100% - 40px);padding:0;box-shadow:0 40px 100px -30px rgba(0,0,0,.8)}
   .dlg::backdrop{background:rgba(0,0,0,.55)}
   .dlg-head{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border)}
@@ -236,37 +231,21 @@
 <div class="wrap">
 
   <div class="suitebar">
-    <button class="sbtn" title="Apps" aria-label="App launcher" onclick="menu('m-apps',event)">
-      <svg width="20" height="20" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
-        <rect x="1" y="1" width="3" height="3" rx="1"/><rect x="6" y="1" width="3" height="3" rx="1"/><rect x="11" y="1" width="3" height="3" rx="1"/>
-        <rect x="1" y="6" width="3" height="3" rx="1"/><rect x="6" y="6" width="3" height="3" rx="1"/><rect x="11" y="6" width="3" height="3" rx="1"/>
-        <rect x="1" y="11" width="3" height="3" rx="1"/><rect x="6" y="11" width="3" height="3" rx="1"/><rect x="11" y="11" width="3" height="3" rx="1"/>
-      </svg>
-    </button>
     <span class="sbrand">Microsoft Search Query Tool</span>
     <span class="sbtag">Query SharePoint, OneDrive &amp; Copilot connectors &mdash; read the raw response.</span>
     <div class="sspace"></div>
     <a id="updPill" class="updpill" target="_blank" rel="noopener" style="display:none"></a>
     <button class="sbtn" title="How to use" aria-label="Help" onclick="document.getElementById('helpDlg').showModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.7"/><path d="M12 16.4h.01"/></svg></button>
     <button class="sbtn" id="themeBtn" title="Toggle light / dark" onclick="toggleTheme()" style="font-size:20px">&#9790;</button>
-    <button class="sbtn" title="Settings" onclick="menu('m-set',event)" style="font-size:20px">&#9881;</button>
+    <button class="sbtn" title="Settings" onclick="menu('m-set',event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <button class="sbtn avatar" id="avatarBtn" title="Account" onclick="menu('m-acct',event)"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v1h18v-1c0-3.5-4-6-9-6Z"/></svg></button>
 
-    <div class="flyout" id="m-apps">
-      <div class="fly-h">Admin centers</div>
-      <a href="https://admin.microsoft.com" target="_blank" rel="noopener">Microsoft 365 admin</a>
-      <a href="https://admin.microsoft.com/sharepoint" target="_blank" rel="noopener">SharePoint admin</a>
-      <a href="https://admin.microsoft.com/#/MicrosoftSearch" target="_blank" rel="noopener">Search &amp; Intelligence</a>
-      <a href="https://admin.cloud.microsoft/#/copilot/connectors" target="_blank" rel="noopener">Copilot Connectors</a>
-      <a href="https://entra.microsoft.com" target="_blank" rel="noopener">Microsoft Entra admin</a>
-      <a href="https://developer.microsoft.com/graph/graph-explorer" target="_blank" rel="noopener">Graph Explorer</a>
-    </div>
     <div class="flyout" id="m-set">
       <div class="fly-h">Settings</div>
       <a onclick="toggleTheme()">Toggle light / dark theme</a>
       <a onclick="checkUpdates(true)">Check for updates</a>
       <a onclick="location.reload()">Reload tool</a>
-      <div class="fly-ver" id="verLine">Version&hellip;</div>
+      <a class="fly-ver" id="verLine" href="https://github.com/gvijaikumar9/MicrosoftSearchQueryTool" target="_blank" rel="noopener" title="View source on GitHub">Version&hellip;</a>
     </div>
     <div class="flyout" id="m-acct"><div class="fly-h">Account</div><a onclick="signin()">Sign in</a></div>
   </div>
@@ -420,11 +399,11 @@
       <h3>How to use it</h3>
       <ol>
         <li>Click the account circle (top-right) and sign in.</li>
-        <li>Type a query.</li>
-        <li>Choose a <b>scope</b> &mdash; all SharePoint sites, OneDrive, a specific site (search &amp; pick), or a connector.</li>
-        <li>Optionally set fields to return, a sort order, or facets to refine.</li>
+        <li>Type a query &mdash; plain text or KQL. The chips under the box insert common KQL for you.</li>
+        <li>Choose a <b>scope</b> in the sidebar &mdash; all SharePoint sites, OneDrive, a specific site (search &amp; pick), or a connector.</li>
+        <li>Optionally set fields to return, a sort order, paging, or tick <b>Spelling</b> for &ldquo;did you mean&rdquo; suggestions.</li>
         <li>Press <b>Run query</b>.</li>
-        <li>Read the <b>Results</b>, or open <b>Request</b> / <b>Response (raw)</b> for the exact Graph call.</li>
+        <li>Read the <b>Results</b>, or open <b>Request</b> / <b>Response (raw)</b> for the exact Graph call. Once results load, refine with the <b>File type / Source / Author</b> facets on the right.</li>
       </ol>
       <h3>KQL tips</h3>
       <p>The query box accepts <b>KQL</b>. A few that work:</p>
@@ -436,6 +415,19 @@
         <li><code>sharepoint AND (list OR column) NOT archive</code> &mdash; boolean operators</li>
       </ul>
       <p>Property restrictions like <code>Path:</code> and <code>filetype:</code> apply to <b>SharePoint and OneDrive</b>, not connector items &mdash; those use their own connector schema properties.</p>
+      <h3>More features</h3>
+      <ul>
+        <li><b>Open in Graph Explorer</b> &mdash; from the <b>Request</b> pane, reproduce the exact call in Graph Explorer. It hits the same index and API, so the results match this tool.</li>
+        <li><b>Presets</b> &mdash; save the current query and options in the sidebar, then reload them later.</li>
+        <li><b>Paging &amp; timing</b> &mdash; step through results with <b>Prev</b> / <b>Next</b>; each run shows how long it took in milliseconds.</li>
+        <li><b>Copy / raw</b> &mdash; copy any result or view its raw JSON with the per-result icons.</li>
+        <li><b>Settings</b> (gear) &mdash; switch light / dark theme, and <b>Check for updates</b> against the latest GitHub release.</li>
+      </ul>
+      <h3>Learn more</h3>
+      <ul>
+        <li><b>Usage walkthrough:</b> <a href="https://fivenumber.com/microsoft-search-query-tool/" target="_blank" rel="noopener">guide on fivenumber.com</a>.</li>
+        <li><b>Source &amp; setup:</b> <a href="https://github.com/gvijaikumar9/MicrosoftSearchQueryTool" target="_blank" rel="noopener">github.com/gvijaikumar9/MicrosoftSearchQueryTool</a> &mdash; build, run and configuration instructions are in the README.</li>
+      </ul>
     </div>
   </dialog>
 </div>
