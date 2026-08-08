@@ -130,6 +130,9 @@
   .grp-body{padding-top:9px}
   .reset-all{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:8px;color:var(--text);cursor:pointer;font-size:12.5px}
   .reset-all:hover{border-color:var(--accent)}
+  .preset-btns{display:flex;gap:8px;margin-top:8px}
+  .pbtn{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:7px;color:var(--text);cursor:pointer;font-size:12.5px}
+  .pbtn:hover{border-color:var(--accent)}
   .qclear{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 4px;display:none}
   .qclear:hover{color:var(--text)}
   .hit-actions{display:inline-flex;gap:2px;align-items:center;margin-left:8px}
@@ -278,16 +281,8 @@
     <button class="kchip" onclick="kqlAdd('AND')">AND</button>
     <button class="kchip" onclick="kqlAdd('OR')">OR</button>
     <button class="kchip" onclick="kqlAdd('NOT')">NOT</button>
-  </div>
-
-  <div class="opts">
-    <label class="optchk"><input type="checkbox" id="spellChk"> Spelling suggestions</label>
     <span class="opts-sep"></span>
-    <span class="kql-lbl">Presets</span>
-    <select id="presetSel" onchange="loadPreset()"><option value="">&mdash; no presets &mdash;</option></select>
-    <input id="presetName" class="ptxt" placeholder="name" spellcheck="false">
-    <button class="kchip" onclick="savePreset()">Save</button>
-    <button class="kchip" onclick="deletePreset()">Delete</button>
+    <label class="optchk"><input type="checkbox" id="spellChk"> Spelling</label>
   </div>
 
   <div class="layout">
@@ -358,6 +353,18 @@
           <label class="opt"><input type="checkbox" class="facet-f" data-facet="contentSource"> Source <span class="sub">contentSource</span></label>
           <label class="opt"><input type="checkbox" class="facet-f" data-facet="author"> Author <span class="sub">author</span></label>
           <p class="fhint">Only refinable properties return facets; others error.</p>
+        </div>
+      </div>
+
+      <div class="grp collapsed">
+        <button class="grp-h" onclick="toggleGrp(this)"><span class="grp-title">Presets</span><span class="grp-sum" id="sum-presets"></span><span class="grp-chev">&#9662;</span></button>
+        <div class="grp-body">
+          <select id="presetSel" onchange="loadPreset()"><option value="">&mdash; no presets &mdash;</option></select>
+          <input id="presetName" class="txt" placeholder="Save current as&hellip;" spellcheck="false" style="margin-top:8px">
+          <div class="preset-btns">
+            <button class="pbtn" onclick="savePreset()">Save</button>
+            <button class="pbtn" onclick="deletePreset()">Delete</button>
+          </div>
         </div>
       </div>
 
@@ -506,6 +513,7 @@ function updateSummaries(){
   var sf=document.getElementById('sortField').value.trim();
   setSum('sum-sort', sf?(sf+' '+(document.getElementById('sortDir').value==='true'?'desc':'asc')):'Relevance');
   setSum('sum-refine', activeFilters.length+' filter'+(activeFilters.length===1?'':'s'));
+  setSum('sum-presets', Object.keys(getPresets()).length+' saved');
 }
 var DEFAULT_FIELDS=['title','name','webUrl','lastModifiedDateTime'];
 function resetAll(){
@@ -807,6 +815,7 @@ function setPresets(p){ try{localStorage.setItem('sqt-presets',JSON.stringify(p)
 function refreshPresetList(){
   var sel=document.getElementById('presetSel'), p=getPresets(), names=Object.keys(p);
   sel.innerHTML='<option value="">'+(names.length?'&mdash; saved queries &mdash;':'&mdash; no presets &mdash;')+'</option>'+names.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join('');
+  setSum('sum-presets', names.length+' saved');
 }
 function captureConfig(){
   return { q:document.getElementById('q').value, scope:currentScope(), site:selectedSite, conn:connId(),
