@@ -191,6 +191,19 @@ app.MapGet("/api/root", async () =>
     return Results.Content(await resp.Content.ReadAsStringAsync(), "application/json", null, (int)resp.StatusCode);
 });
 
+// GET /api/sites?search=... -> search SharePoint sites for the "specific site" picker.
+app.MapGet("/api/sites", async (string? search) =>
+{
+    var token = await TokenAsync();
+    if (token is null) return Results.Json(new { error = "not_signed_in" }, statusCode: 401);
+    var q = Uri.EscapeDataString(search ?? "");
+    using var msg = new HttpRequestMessage(HttpMethod.Get,
+        $"https://graph.microsoft.com/v1.0/sites?search={q}&$select=id,name,displayName,webUrl&$top=15");
+    msg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    var resp = await http.SendAsync(msg);
+    return Results.Content(await resp.Content.ReadAsStringAsync(), "application/json", null, (int)resp.StatusCode);
+});
+
 app.Urls.Add(listenUrl);
 try { Process.Start(new ProcessStartInfo(listenUrl) { UseShellExecute = true }); } catch { /* open manually */ }
 Console.WriteLine($"Microsoft Search Query Tool running at {listenUrl}");

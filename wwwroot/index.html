@@ -103,6 +103,14 @@
   select:disabled{opacity:.5;cursor:not-allowed}
   select.needpick{border-color:var(--accent);box-shadow:0 0 0 1px rgba(55,148,255,.4)}
   select:focus,.side input.txt:focus,.two input:focus{outline:none;border-color:var(--accent)}
+  .scopebox{margin-top:8px}
+  .site-results{max-height:210px;overflow-y:auto;margin-top:6px}
+  .site-results a{display:block;padding:7px 9px;border-radius:6px;cursor:pointer;border:1px solid transparent}
+  .site-results a:hover{background:var(--panel2)}
+  .site-results .su{display:block;font-size:12.5px;font-weight:600;color:var(--text)}
+  .site-results .sp{display:block;font-size:11px;color:var(--muted);word-break:break-all}
+  .site-picked{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--accent);border-radius:7px;padding:7px 10px;font-size:12.5px;margin-bottom:6px}
+  .site-picked i{margin-left:auto;cursor:pointer;color:var(--muted);font-style:normal} .site-picked i:hover{color:#f14c4c}
   .side input.txt{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-family:var(--mono);font-size:12.5px}
   select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-family:var(--ui);font-size:13px}
   .fields{display:flex;flex-wrap:wrap;gap:6px}
@@ -245,16 +253,24 @@
   <div class="layout">
     <aside class="side">
       <div class="grp">
-        <h3>Sources (entity types)</h3>
-        <label class="opt"><input type="checkbox" class="ent" data-entity="driveItem" checked> SharePoint &amp; OneDrive <span class="sub">driveItem</span></label>
-        <label class="opt"><input type="checkbox" class="ent" data-entity="listItem" checked> List items <span class="sub">listItem</span></label>
-        <label class="opt"><input type="checkbox" class="ent" data-entity="site"> Sites <span class="sub">site</span></label>
-        <label class="opt"><input type="checkbox" class="ent" data-entity="externalItem" checked> Connectors <span class="sub">externalItem</span></label>
-        <div class="conn">
-          <select id="connSelect" onchange="onConn();updateConn()">
+        <h3>Scope</h3>
+        <label class="opt"><input type="radio" name="scope" class="scope" value="sites" checked> All SharePoint sites <span class="sub">files + lists</span></label>
+        <label class="opt"><input type="radio" name="scope" class="scope" value="onedrive"> OneDrive <span class="sub">files</span></label>
+        <label class="opt"><input type="radio" name="scope" class="scope" value="site"> A specific site <span class="sub">search</span></label>
+        <label class="opt"><input type="radio" name="scope" class="scope" value="connector"> A connector <span class="sub">externalItem</span></label>
+
+        <div class="scopebox" id="siteBox" style="display:none">
+          <div id="sitePicked"></div>
+          <input class="txt" id="siteSearch" spellcheck="false" autocomplete="off" placeholder="Search sites by name" oninput="siteSearchDebounced()">
+          <div class="site-results" id="siteResults"></div>
+          <p class="fhint">Type a name, then pick a site.</p>
+        </div>
+
+        <div class="scopebox" id="connBox" style="display:none">
+          <select id="connSelect" onchange="onConn()">
             <option value="">&mdash; loading connections &mdash;</option>
           </select>
-          <p class="fhint" id="connHint">Pick a connection for external-item results.</p>
+          <p class="fhint" id="connHint">Pick a connection.</p>
         </div>
       </div>
 
@@ -357,7 +373,7 @@
       <ol>
         <li>Click the account circle (top-right) and sign in.</li>
         <li>Type a query.</li>
-        <li>Tick the sources you want. For <b>Connectors</b>, pick a connection.</li>
+        <li>Choose a <b>scope</b> &mdash; all SharePoint sites, OneDrive, a specific site (search &amp; pick), or a connector.</li>
         <li>Optionally set fields to return, a sort order, or facets to refine.</li>
         <li>Press <b>Run query</b>.</li>
         <li>Read the <b>Results</b>, or open <b>Request</b> / <b>Response (raw)</b> for the exact Graph call.</li>
@@ -419,7 +435,27 @@ function showTab(id){
   document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id===id);});
   document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.p===id);});
 }
-function entities(){return [].map.call(document.querySelectorAll('.ent:checked'),function(c){return c.dataset.entity;});}
+function currentScope(){var r=document.querySelector('.scope:checked');return r?r.value:'sites';}
+function onScope(){ var s=currentScope(); document.getElementById('siteBox').style.display=(s==='site')?'block':'none'; document.getElementById('connBox').style.display=(s==='connector')?'block':'none'; }
+var selectedSite=null, siteTimer=null;
+function siteSearchDebounced(){ clearTimeout(siteTimer); siteTimer=setTimeout(siteSearch,300); }
+async function siteSearch(){
+  var q=document.getElementById('siteSearch').value.trim(), box=document.getElementById('siteResults');
+  if(!q){box.innerHTML='';return;}
+  try{
+    var r=await fetch('/api/sites?search='+encodeURIComponent(q)); var d=await r.json();
+    var arr=(d&&d.value)||[];
+    if(!arr.length){box.innerHTML='<p class="fhint">No sites found.</p>';return;}
+    box.innerHTML=arr.slice(0,10).map(function(s){var nm=s.displayName||s.name||s.webUrl;return '<a onclick="pickSite(this)" data-url="'+esc(s.webUrl)+'" data-name="'+esc(nm)+'"><span class="su">'+esc(nm)+'</span><span class="sp">'+esc(s.webUrl)+'</span></a>';}).join('');
+  }catch(e){ box.innerHTML='<p class="fhint">Search failed.</p>'; }
+}
+function pickSite(el){
+  selectedSite={name:el.dataset.name,url:el.dataset.url};
+  document.getElementById('siteResults').innerHTML='';
+  var si=document.getElementById('siteSearch'); si.value=''; si.style.display='none';
+  document.getElementById('sitePicked').innerHTML='<div class="site-picked">'+esc(selectedSite.name)+'<i onclick="clearSite()">&times;</i></div>';
+}
+function clearSite(){ selectedSite=null; document.getElementById('sitePicked').innerHTML=''; var si=document.getElementById('siteSearch'); si.style.display='block'; si.focus(); }
 function fields(){return [].map.call(document.querySelectorAll('#fields .ftag[data-f]'),function(c){return c.dataset.f;});}
 function facetFields(){return [].map.call(document.querySelectorAll('.facet-f:checked'),function(c){return c.dataset.facet;});}
 var activeFilters=[];
@@ -513,16 +549,6 @@ async function onConn(){
     document.getElementById('connHint').textContent=props.length?props.length+' retrievable fields available in the picker.':'Pick a connection for external-item results.';
   }catch(e){ setFieldOptions(SP_PRESETS); }
 }
-// Enable/disable + prompt on the connection picker based on the Connectors checkbox.
-function updateConn(){
-  var cb=document.querySelector('.ent[data-entity="externalItem"]');
-  var sel=document.getElementById('connSelect');
-  if(!cb||!sel) return;
-  sel.disabled=!cb.checked;
-  if(!cb.checked) sel.value='';
-  sel.classList.toggle('needpick', cb.checked && !sel.value);
-}
-
 function makeChip(name,retrievable){
   var s=document.createElement('span');
   s.className='ftag'+(retrievable===false?' off':'');
@@ -632,26 +658,34 @@ function dropFilter(i){ activeFilters.splice(i,1); run(); }
 
 async function run(){
   if(!signedIn){ await signin(); if(!signedIn) return; }
-  var cid=connId();
-  if(entities().indexOf('externalItem')>=0&&!cid){
-    showError('Pick a connection to include connector results, or untick Connectors.');
-    return;
+  var scope=currentScope(), entityTypes, path='', contentSources=null;
+  if(scope==='sites'){ entityTypes=['driveItem','listItem']; }
+  else if(scope==='onedrive'){
+    if(!spRoot){ showError('OneDrive location not ready yet - sign in first.'); return; }
+    entityTypes=['driveItem']; path=spRoot.replace('.sharepoint.com','-my.sharepoint.com');
   }
+  else if(scope==='site'){
+    if(!selectedSite){ showError('Search and pick a site first.'); return; }
+    entityTypes=['driveItem','listItem']; path=selectedSite.url;
+  }
+  else { var cid=connId(); if(!cid){ showError('Pick a connection first.'); return; } entityTypes=['externalItem']; contentSources=['/external/connections/'+cid]; }
   var btn=document.getElementById('runBtn');btn.disabled=true;btn.textContent='Running...';
+  var userQ=document.getElementById('q').value.trim();
+  var qs = path ? (userQ ? userQ+' Path:"'+path+'"' : 'Path:"'+path+'"') : userQ;
   var body={
-    queryString:document.getElementById('q').value,
-    entityTypes:entities(),
+    queryString:qs,
+    entityTypes:entityTypes,
     fields:fields(),
     from:parseInt(document.getElementById('from').value,10)||0,
     size:parseInt(document.getElementById('size').value,10)||25
   };
-  if(cid)body.contentSources=['/external/connections/'+cid];
+  if(contentSources)body.contentSources=contentSources;
   var sf=document.getElementById('sortField').value.trim();
   if(sf)body.sort=[{name:sf,isDescending:document.getElementById('sortDir').value==='true'}];
   var af=facetFields();
   if(af.length)body.aggregations=af;
   if(activeFilters.length)body.aggregationFilters=activeFilters.map(function(a){return a.filter;});
-  renderVerify(body.queryString);
+  renderVerify(qs);
   try{
     var r=await fetch('/api/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     var data=await r.json();
@@ -676,8 +710,8 @@ async function run(){
 applyTheme((function(){try{return localStorage.getItem('sqt-theme')||'dark';}catch(e){return 'dark';}})());
 setFieldOptions(SP_PRESETS);
 checkMe();
-[].forEach.call(document.querySelectorAll('.ent'),function(c){c.addEventListener('change',updateConn);});
-updateConn();
+[].forEach.call(document.querySelectorAll('.scope'),function(r){r.addEventListener('change',onScope);});
+onScope();
 document.getElementById('helpDlg').addEventListener('click',function(e){ if(e.target.id==='helpDlg') e.target.close(); });
 </script>
 </body>
