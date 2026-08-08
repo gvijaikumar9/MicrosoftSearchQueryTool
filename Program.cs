@@ -17,6 +17,9 @@ string clientId  = cfg["ClientId"] ?? "14d82eec-204b-4c2f-b7e8-296a70dab67e";
 string tenantId  = cfg["TenantId"] ?? "organizations";
 string listenUrl = cfg["Url"]      ?? "http://localhost:5089";
 
+// This build's version (from the .csproj <Version>), used by the update check.
+string appVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
+
 string[] scopes =
 {
     "https://graph.microsoft.com/Sites.Read.All",
@@ -206,6 +209,35 @@ app.MapGet("/api/sites", async (string? search) =>
     return Results.Content(await resp.Content.ReadAsStringAsync(), "application/json", null, (int)resp.StatusCode);
 });
 
+// GET /api/update-check -> compares this build's version to the latest GitHub release,
+// so the UI can flag when a newer version is available (and link to it). Runs server-side
+// to avoid browser CORS and to send the User-Agent header the GitHub API requires.
+app.MapGet("/api/update-check", async () =>
+{
+    const string repo    = "gvijaikumar9/MicrosoftSearchQueryTool";
+    const string repoUrl = "https://github.com/gvijaikumar9/MicrosoftSearchQueryTool";
+    try
+    {
+        using var msg = new HttpRequestMessage(HttpMethod.Get,
+            $"https://api.github.com/repos/{repo}/releases/latest");
+        msg.Headers.UserAgent.ParseAdd("MicrosoftSearchQueryTool");
+        msg.Headers.Accept.ParseAdd("application/vnd.github+json");
+        var resp = await http.SendAsync(msg);
+        // No releases published yet (404) or rate-limited -> just report "no update".
+        if (!resp.IsSuccessStatusCode)
+            return Results.Json(new { current = appVersion, latest = (string?)null, updateAvailable = false, url = repoUrl });
+        var doc  = JsonSerializer.Deserialize<JsonElement>(await resp.Content.ReadAsStringAsync());
+        var tag  = doc.TryGetProperty("tag_name", out var t) ? t.GetString() : null;
+        var html = doc.TryGetProperty("html_url", out var h) ? h.GetString() : repoUrl;
+        var newer = tag is not null && CompareVersions(tag, appVersion) > 0;
+        return Results.Json(new { current = appVersion, latest = tag, updateAvailable = newer, url = html ?? repoUrl });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { current = appVersion, latest = (string?)null, updateAvailable = false, url = repoUrl, error = ex.Message });
+    }
+});
+
 app.Urls.Add(listenUrl);
 try { Process.Start(new ProcessStartInfo(listenUrl) { UseShellExecute = true }); } catch { /* open manually */ }
 Console.WriteLine($"Microsoft Search Query Tool running at {listenUrl}");
@@ -215,6 +247,22 @@ static object? SafeParse(string s)
 {
     try { return JsonSerializer.Deserialize<JsonElement>(s); }
     catch { return s; }
+}
+
+// Compares two dotted version strings, ignoring any leading "v". Returns >0 when a is newer
+// than b, 0 when equal, <0 when older. Non-numeric segments (e.g. a "-beta" suffix) count as 0.
+static int CompareVersions(string a, string b)
+{
+    static int[] Parts(string s) => s.TrimStart('v', 'V').Split('.', '-')
+        .Select(p => int.TryParse(p, out var n) ? n : 0).ToArray();
+    var pa = Parts(a);
+    var pb = Parts(b);
+    for (int i = 0; i < Math.Max(pa.Length, pb.Length); i++)
+    {
+        int x = i < pa.Length ? pa[i] : 0, y = i < pb.Length ? pb[i] : 0;
+        if (x != y) return x.CompareTo(y);
+    }
+    return 0;
 }
 
 record SearchInput

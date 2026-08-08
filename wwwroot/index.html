@@ -35,6 +35,12 @@
   .sbrand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;color:var(--text);white-space:nowrap}
   .sbrand .mk{width:30px;height:30px;border-radius:8px;background:#141b26;color:var(--mark);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:14px;border:1px solid #2a3543}
   .sbadge{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:650;color:#4fc1ff;background:#12233c;border:1px solid #1f4b6e;padding:4px 11px;border-radius:100px;white-space:nowrap}
+  .sbtag{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12.5px;font-weight:400}
+  .updpill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:100px;white-space:nowrap}
+  .updpill.on{color:#04121f;background:var(--accent);border:1px solid var(--accent);cursor:pointer}
+  .updpill.on:hover{filter:brightness(1.08)}
+  .updpill.ok{color:var(--muted);background:var(--panel2);border:1px solid var(--border);cursor:default}
+  .fly-ver{font-size:11px;color:var(--muted);padding:8px 10px 4px;border-top:1px solid var(--border);margin-top:4px}
   .sbadge .dot{width:6px;height:6px;border-radius:50%;background:#89d185}
   .sspace{flex:1}
   .avatar{background:#3a3a3a;color:#fff;border-radius:50%;font-weight:700;font-size:13px;width:34px;height:34px}
@@ -46,7 +52,7 @@
   .fly-id{font-size:12px;color:var(--text);padding:2px 10px 8px;font-family:var(--mono);word-break:break-all;border-bottom:1px solid var(--border);margin-bottom:4px}
   .flyout a{display:block;padding:8px 10px;border-radius:6px;color:var(--text);font-size:13px;cursor:pointer;text-decoration:none}
   .flyout a:hover{background:var(--panel2);text-decoration:none}
-  @media(max-width:640px){.sbadge{display:none}}
+  @media(max-width:640px){.sbadge,.sbtag{display:none}}
   /* Light theme */
   :root[data-theme="light"]{
     --bg:#f3f4f6; --panel:#ffffff; --panel2:#eef0f3; --border:#dfe1e6;
@@ -156,7 +162,7 @@
   .sumbar{color:var(--muted);font-size:12.5px;margin-bottom:10px} .sumbar b{color:var(--text)}
   .errbar{background:rgba(241,76,76,.12);border:1px solid rgba(241,76,76,.4);border-left:3px solid #f14c4c;color:#f1b0b0;border-radius:8px;padding:11px 14px;margin-bottom:12px;font-size:13px}
   .pg{cursor:pointer;color:var(--accent);margin-left:8px}
-  .facets{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+  .facets{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-left:auto}
   .facets:empty{margin:0}
   .afchip{display:inline-flex;align-items:center;background:rgba(55,148,255,.12);border:1px solid var(--accent);border-radius:20px;padding:4px 11px;color:var(--text);font-size:12.5px}
   .afchip i{margin-left:7px;cursor:pointer;color:var(--muted);font-style:normal} .afchip i:hover{color:#f14c4c}
@@ -164,7 +170,8 @@
   .fdrop-btn{background:var(--panel2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12.5px;color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
   .fdrop-btn:hover{border-color:var(--accent)}
   .fdrop-btn .caret{color:var(--muted);font-size:9px}
-  .fdrop-menu{position:absolute;top:34px;left:0;min-width:210px;max-height:300px;overflow-y:auto;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:6px;display:none;z-index:25;box-shadow:0 20px 50px -20px rgba(0,0,0,.7)}
+  .fdrop-menu{position:absolute;top:34px;right:0;left:auto;min-width:210px;max-height:300px;overflow-y:auto;overflow-x:hidden;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:6px;display:none;z-index:25;box-shadow:0 20px 50px -20px rgba(0,0,0,.7)}
+  .fdrop-menu a>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .fdrop.open .fdrop-menu{display:block}
   .fdrop-menu a{display:flex;justify-content:space-between;gap:14px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text);cursor:pointer}
   .fdrop-menu a:hover{background:var(--panel2);color:var(--accent)}
@@ -230,18 +237,19 @@
 
   <div class="suitebar">
     <button class="sbtn" title="Apps" aria-label="App launcher" onclick="menu('m-apps',event)">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
         <rect x="1" y="1" width="3" height="3" rx="1"/><rect x="6" y="1" width="3" height="3" rx="1"/><rect x="11" y="1" width="3" height="3" rx="1"/>
         <rect x="1" y="6" width="3" height="3" rx="1"/><rect x="6" y="6" width="3" height="3" rx="1"/><rect x="11" y="6" width="3" height="3" rx="1"/>
         <rect x="1" y="11" width="3" height="3" rx="1"/><rect x="6" y="11" width="3" height="3" rx="1"/><rect x="11" y="11" width="3" height="3" rx="1"/>
       </svg>
     </button>
-    <span class="sbrand"><span class="mk"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg></span>Microsoft Search Query Tool</span>
-    <span class="sbadge"><span class="dot"></span>SharePoint Online / Microsoft 365</span>
+    <span class="sbrand">Microsoft Search Query Tool</span>
+    <span class="sbtag">Query SharePoint, OneDrive &amp; Copilot connectors &mdash; read the raw response.</span>
     <div class="sspace"></div>
-    <button class="sbtn" title="How to use" aria-label="Help" onclick="document.getElementById('helpDlg').showModal()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.7"/><path d="M12 16.4h.01"/></svg></button>
-    <button class="sbtn" id="themeBtn" title="Toggle light / dark" onclick="toggleTheme()">&#9790;</button>
-    <button class="sbtn" title="Settings" onclick="menu('m-set',event)">&#9881;</button>
+    <a id="updPill" class="updpill" target="_blank" rel="noopener" style="display:none"></a>
+    <button class="sbtn" title="How to use" aria-label="Help" onclick="document.getElementById('helpDlg').showModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.7"/><path d="M12 16.4h.01"/></svg></button>
+    <button class="sbtn" id="themeBtn" title="Toggle light / dark" onclick="toggleTheme()" style="font-size:20px">&#9790;</button>
+    <button class="sbtn" title="Settings" onclick="menu('m-set',event)" style="font-size:20px">&#9881;</button>
     <button class="sbtn avatar" id="avatarBtn" title="Account" onclick="menu('m-acct',event)"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v1h18v-1c0-3.5-4-6-9-6Z"/></svg></button>
 
     <div class="flyout" id="m-apps">
@@ -256,16 +264,17 @@
     <div class="flyout" id="m-set">
       <div class="fly-h">Settings</div>
       <a onclick="toggleTheme()">Toggle light / dark theme</a>
+      <a onclick="checkUpdates(true)">Check for updates</a>
       <a onclick="location.reload()">Reload tool</a>
+      <div class="fly-ver" id="verLine">Version&hellip;</div>
     </div>
     <div class="flyout" id="m-acct"><div class="fly-h">Account</div><a onclick="signin()">Sign in</a></div>
   </div>
 
-  <p class="subtitle">Build and test Microsoft Search queries across SharePoint, OneDrive and Copilot connectors &mdash; and read the raw response.</p>
-
   <div class="qbar">
     <div class="qin"><span class="mag">&#128269;</span>
-      <input id="q" value="format sharepoint list column" spellcheck="false"
+      <input id="q" value="" spellcheck="false"
+             placeholder='Type a search, or use KQL &mdash; e.g. budget report &middot; filetype:docx onboarding &middot; title:"leave policy" &middot; author:"Jane Doe" &middot; Path:"https://contoso.sharepoint.com/sites/HR"'
              oninput="toggleClear()" onkeydown="if(event.key==='Enter')run()" aria-label="Query">
       <button class="qclear" id="qclear" onclick="clearQuery()" title="Clear" aria-label="Clear">&times;</button>
     </div>
@@ -283,6 +292,7 @@
     <button class="kchip" onclick="kqlAdd('NOT')">NOT</button>
     <span class="opts-sep"></span>
     <label class="optchk"><input type="checkbox" id="spellChk"> Spelling</label>
+    <div id="facets" class="facets"></div>
   </div>
 
   <div class="layout">
@@ -374,7 +384,6 @@
     <main class="main">
       <div id="err" class="errbar" style="display:none"></div>
       <div id="spellNote" class="spellnote" style="display:none"></div>
-      <div id="facets" class="facets"></div>
       <div class="tabs">
         <div class="tab on" data-p="res" onclick="showTab('res')">Results</div>
         <div class="tab" data-p="req" onclick="showTab('req')">Request</div>
@@ -848,11 +857,33 @@ function savePreset(){
 function loadPreset(){ var nm=document.getElementById('presetSel').value; if(!nm)return; var p=getPresets(); if(p[nm])applyConfig(p[nm]); }
 function deletePreset(){ var nm=document.getElementById('presetSel').value; if(!nm){showError('Pick a preset to delete.');return;} var p=getPresets(); delete p[nm]; setPresets(p); }
 
+// Compares this build against the latest GitHub release. Runs silently on load; when called
+// with manual=true (Settings > Check for updates) it also confirms when you're up to date.
+async function checkUpdates(manual){
+  if(manual) closeMenus();
+  var pill=document.getElementById('updPill');
+  try{
+    var r=await fetch('/api/update-check'); var d=await r.json();
+    var ver=document.getElementById('verLine'); if(ver) ver.textContent='Version '+(d.current||'?');
+    if(d.updateAvailable && d.latest){
+      pill.textContent='↑ Update available: '+d.latest;
+      pill.href=d.url; pill.title='A newer version is on GitHub — click to view the release';
+      pill.className='updpill on'; pill.style.display='inline-flex';
+    } else if(manual){
+      pill.removeAttribute('href'); pill.title='';
+      pill.textContent='✓ Up to date (v'+(d.current||'?')+')';
+      pill.className='updpill ok'; pill.style.display='inline-flex';
+      setTimeout(function(){ if(pill.classList.contains('ok')) pill.style.display='none'; },5000);
+    }
+  }catch(e){ if(manual) showError('Update check failed: '+e.message); }
+}
+
 // On load: apply saved theme, show default field suggestions, check sign-in state.
 applyTheme((function(){try{return localStorage.getItem('sqt-theme')||'dark';}catch(e){return 'dark';}})());
 setFieldOptions(SP_PRESETS);
 checkMe();
 refreshPresetList();
+checkUpdates(false);
 [].forEach.call(document.querySelectorAll('.scope'),function(r){r.addEventListener('change',onScope);});
 onScope(); toggleClear();
 document.getElementById('helpDlg').addEventListener('click',function(e){ if(e.target.id==='helpDlg') e.target.close(); });
