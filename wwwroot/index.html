@@ -87,9 +87,9 @@
     .wrap{height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:16px}
     .suitebar,.subtitle,.qbar,.kql{flex:none}
     .layout{flex:1;min-height:0}
-    .side{overflow-y:auto}
+    .side{overflow-y:auto;scrollbar-gutter:stable}
     .main{display:flex;flex-direction:column;min-height:0}
-    .pane.on{flex:1 1 auto;overflow-y:auto}
+    .pane.on{flex:1 1 auto;overflow-y:auto;scrollbar-gutter:stable}
     footer{flex:none;margin-top:12px}
   }
   .side{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
@@ -111,6 +111,22 @@
   .site-results .sp{display:block;font-size:11px;color:var(--muted);word-break:break-all}
   .site-picked{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--accent);border-radius:7px;padding:7px 10px;font-size:12.5px;margin-bottom:6px}
   .site-picked i{margin-left:auto;cursor:pointer;color:var(--muted);font-style:normal} .site-picked i:hover{color:#f14c4c}
+  .grp-h{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:0;padding:6px 0;cursor:pointer}
+  .grp-title{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .grp-sum{margin-left:auto;font-size:12.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+  .grp-chev{color:var(--muted);font-size:14px;line-height:1;transition:transform .15s;flex:none;width:14px;text-align:center}
+  .grp-h:hover .grp-chev,.grp-h:hover .grp-title{color:var(--text)}
+  .grp.collapsed .grp-chev{transform:rotate(-90deg)}
+  .grp.collapsed .grp-body{display:none}
+  .grp-body{padding-top:9px}
+  .reset-all{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:8px;color:var(--text);cursor:pointer;font-size:12.5px}
+  .reset-all:hover{border-color:var(--accent)}
+  .qclear{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 4px;display:none}
+  .qclear:hover{color:var(--text)}
+  .hit-actions{display:inline-flex;gap:2px;align-items:center;margin-left:8px}
+  .hit-btn{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:12px;padding:3px 5px;border-radius:5px;font-family:var(--mono);display:inline-flex;align-items:center}
+  .hit-btn:hover{background:var(--panel2);color:var(--text)}
+  .hit-raw{margin-top:10px}
   .side input.txt{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-family:var(--mono);font-size:12.5px}
   select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-family:var(--ui);font-size:13px}
   .fields{display:flex;flex-wrap:wrap;gap:6px}
@@ -234,7 +250,8 @@
   <div class="qbar">
     <div class="qin"><span class="mag">&#128269;</span>
       <input id="q" value="format sharepoint list column" spellcheck="false"
-             onkeydown="if(event.key==='Enter')run()" aria-label="Query">
+             oninput="toggleClear()" onkeydown="if(event.key==='Enter')run()" aria-label="Query">
+      <button class="qclear" id="qclear" onclick="clearQuery()" title="Clear" aria-label="Clear">&times;</button>
     </div>
     <button class="run" id="runBtn" onclick="run()">Run query</button>
   </div>
@@ -253,67 +270,75 @@
   <div class="layout">
     <aside class="side">
       <div class="grp">
-        <h3>Scope</h3>
-        <label class="opt"><input type="radio" name="scope" class="scope" value="sites" checked> All SharePoint sites <span class="sub">files + lists</span></label>
-        <label class="opt"><input type="radio" name="scope" class="scope" value="onedrive"> OneDrive <span class="sub">files</span></label>
-        <label class="opt"><input type="radio" name="scope" class="scope" value="site"> A specific site <span class="sub">search</span></label>
-        <label class="opt"><input type="radio" name="scope" class="scope" value="connector"> A connector <span class="sub">externalItem</span></label>
-
-        <div class="scopebox" id="siteBox" style="display:none">
-          <div id="sitePicked"></div>
-          <input class="txt" id="siteSearch" spellcheck="false" autocomplete="off" placeholder="Search sites by name" oninput="siteSearchDebounced()">
-          <div class="site-results" id="siteResults"></div>
-          <p class="fhint">Type a name, then pick a site.</p>
+        <button class="grp-h" onclick="toggleGrp(this)"><span class="grp-title">Scope</span><span class="grp-sum" id="sum-scope"></span><span class="grp-chev">&#9662;</span></button>
+        <div class="grp-body">
+          <label class="opt"><input type="radio" name="scope" class="scope" value="sites" checked> All SharePoint sites <span class="sub">files + lists</span></label>
+          <label class="opt"><input type="radio" name="scope" class="scope" value="onedrive"> OneDrive <span class="sub">files</span></label>
+          <label class="opt"><input type="radio" name="scope" class="scope" value="site"> A specific site <span class="sub">search</span></label>
+          <label class="opt"><input type="radio" name="scope" class="scope" value="connector"> A connector <span class="sub">externalItem</span></label>
+          <div class="scopebox" id="siteBox" style="display:none">
+            <div id="sitePicked"></div>
+            <input class="txt" id="siteSearch" spellcheck="false" autocomplete="off" placeholder="Search sites by name" oninput="siteSearchDebounced()">
+            <div class="site-results" id="siteResults"></div>
+            <p class="fhint">Type a name, then pick a site.</p>
+          </div>
+          <div class="scopebox" id="connBox" style="display:none">
+            <select id="connSelect" onchange="onConn();updateSummaries()"><option value="">&mdash; loading connections &mdash;</option></select>
+            <p class="fhint" id="connHint">Pick a connection.</p>
+          </div>
         </div>
+      </div>
 
-        <div class="scopebox" id="connBox" style="display:none">
-          <select id="connSelect" onchange="onConn()">
-            <option value="">&mdash; loading connections &mdash;</option>
+      <div class="grp collapsed">
+        <button class="grp-h" onclick="toggleGrp(this)"><span class="grp-title">Fields to return</span><span class="grp-sum" id="sum-fields"></span><span class="grp-chev">&#9662;</span></button>
+        <div class="grp-body">
+          <div class="fields" id="fields">
+            <span class="ftag" data-f="title">title<i onclick="rm(this)">&times;</i></span>
+            <span class="ftag" data-f="name">name<i onclick="rm(this)">&times;</i></span>
+            <span class="ftag" data-f="webUrl">webUrl<i onclick="rm(this)">&times;</i></span>
+            <span class="ftag" data-f="lastModifiedDateTime">lastModifiedDateTime<i onclick="rm(this)">&times;</i></span>
+            <span class="ftag add" id="addBtn" onclick="addField()">+ add</span>
+          </div>
+          <input class="txt" id="fieldInput" list="fieldOptions" style="display:none" spellcheck="false"
+                 placeholder="Pick or type a property"
+                 onkeydown="if(event.key==='Enter')commitField();if(event.key==='Escape')cancelField()">
+          <datalist id="fieldOptions"></datalist>
+          <p class="fhint">Pick from the list, or type any retrievable property. <a onclick="loadSchema()">Add all schema fields</a></p>
+        </div>
+      </div>
+
+      <div class="grp collapsed">
+        <button class="grp-h" onclick="toggleGrp(this)"><span class="grp-title">Paging</span><span class="grp-sum" id="sum-paging"></span><span class="grp-chev">&#9662;</span></button>
+        <div class="grp-body">
+          <div class="two">
+            <label>From<input id="from" value="0" oninput="updateSummaries()"></label>
+            <label>Size<input id="size" value="25" oninput="updateSummaries()"></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="grp collapsed">
+        <button class="grp-h" onclick="toggleGrp(this)"><span class="grp-title">Sort</span><span class="grp-sum" id="sum-sort"></span><span class="grp-chev">&#9662;</span></button>
+        <div class="grp-body">
+          <input class="txt" id="sortField" list="fieldOptions" spellcheck="false" placeholder="Relevance (default)" oninput="updateSummaries()">
+          <select id="sortDir" style="margin-top:8px" onchange="updateSummaries()">
+            <option value="true" selected>Descending</option>
+            <option value="false">Ascending</option>
           </select>
-          <p class="fhint" id="connHint">Pick a connection.</p>
         </div>
       </div>
 
-      <div class="grp">
-        <h3>Fields to return</h3>
-        <div class="fields" id="fields">
-          <span class="ftag" data-f="title">title<i onclick="rm(this)">&times;</i></span>
-          <span class="ftag" data-f="name">name<i onclick="rm(this)">&times;</i></span>
-          <span class="ftag" data-f="webUrl">webUrl<i onclick="rm(this)">&times;</i></span>
-          <span class="ftag" data-f="lastModifiedDateTime">lastModifiedDateTime<i onclick="rm(this)">&times;</i></span>
-          <span class="ftag add" id="addBtn" onclick="addField()">+ add</span>
-        </div>
-        <input class="txt" id="fieldInput" list="fieldOptions" style="display:none" spellcheck="false"
-               placeholder="Pick or type a property"
-               onkeydown="if(event.key==='Enter')commitField();if(event.key==='Escape')cancelField()">
-        <datalist id="fieldOptions"></datalist>
-        <p class="fhint">Pick from the list, or type any retrievable property. <a onclick="loadSchema()">Add all schema fields</a></p>
-      </div>
-
-      <div class="grp">
-        <h3>Paging</h3>
-        <div class="two">
-          <label>From<input id="from" value="0"></label>
-          <label>Size<input id="size" value="25"></label>
+      <div class="grp collapsed">
+        <button class="grp-h" onclick="toggleGrp(this)"><span class="grp-title">Refine (facets)</span><span class="grp-sum" id="sum-refine"></span><span class="grp-chev">&#9662;</span></button>
+        <div class="grp-body">
+          <label class="opt"><input type="checkbox" class="facet-f" data-facet="fileType"> File type <span class="sub">fileType</span></label>
+          <label class="opt"><input type="checkbox" class="facet-f" data-facet="contentSource"> Source <span class="sub">contentSource</span></label>
+          <label class="opt"><input type="checkbox" class="facet-f" data-facet="author"> Author <span class="sub">author</span></label>
+          <p class="fhint">Only refinable properties return facets; others error.</p>
         </div>
       </div>
 
-      <div class="grp">
-        <h3>Sort</h3>
-        <input class="txt" id="sortField" list="fieldOptions" spellcheck="false" placeholder="Relevance (default)">
-        <select id="sortDir" style="margin-top:8px">
-          <option value="true" selected>Descending</option>
-          <option value="false">Ascending</option>
-        </select>
-      </div>
-
-      <div class="grp">
-        <h3>Refine (facets)</h3>
-        <label class="opt"><input type="checkbox" class="facet-f" data-facet="fileType"> File type <span class="sub">fileType</span></label>
-        <label class="opt"><input type="checkbox" class="facet-f" data-facet="contentSource"> Source <span class="sub">contentSource</span></label>
-        <label class="opt"><input type="checkbox" class="facet-f" data-facet="author"> Author <span class="sub">author</span></label>
-        <p class="fhint">Only refinable properties return facets; others error.</p>
-      </div>
+      <button class="reset-all" onclick="resetAll()">Reset all</button>
     </aside>
 
     <main class="main">
@@ -436,7 +461,7 @@ function showTab(id){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.p===id);});
 }
 function currentScope(){var r=document.querySelector('.scope:checked');return r?r.value:'sites';}
-function onScope(){ var s=currentScope(); document.getElementById('siteBox').style.display=(s==='site')?'block':'none'; document.getElementById('connBox').style.display=(s==='connector')?'block':'none'; }
+function onScope(){ var s=currentScope(); document.getElementById('siteBox').style.display=(s==='site')?'block':'none'; document.getElementById('connBox').style.display=(s==='connector')?'block':'none'; updateSummaries(); }
 var selectedSite=null, siteTimer=null;
 function siteSearchDebounced(){ clearTimeout(siteTimer); siteTimer=setTimeout(siteSearch,300); }
 async function siteSearch(){
@@ -454,8 +479,57 @@ function pickSite(el){
   document.getElementById('siteResults').innerHTML='';
   var si=document.getElementById('siteSearch'); si.value=''; si.style.display='none';
   document.getElementById('sitePicked').innerHTML='<div class="site-picked">'+esc(selectedSite.name)+'<i onclick="clearSite()">&times;</i></div>';
+  updateSummaries();
 }
-function clearSite(){ selectedSite=null; document.getElementById('sitePicked').innerHTML=''; var si=document.getElementById('siteSearch'); si.style.display='block'; si.focus(); }
+function clearSite(){ selectedSite=null; document.getElementById('sitePicked').innerHTML=''; var si=document.getElementById('siteSearch'); si.style.display='block'; si.focus(); updateSummaries(); }
+
+// Accordion + state summaries + reset
+function toggleGrp(btn){ btn.parentElement.classList.toggle('collapsed'); }
+function setSum(id,txt){ var e=document.getElementById(id); if(e) e.textContent=txt; }
+function updateSummaries(){
+  var s=currentScope(), sc;
+  if(s==='sites') sc='All SharePoint sites';
+  else if(s==='onedrive') sc='OneDrive';
+  else if(s==='site') sc=selectedSite?('Site: '+selectedSite.name):'Pick a site';
+  else { var c=connId(); sc=c?('Connector: '+(connNames[c.toLowerCase()]||c)):'Pick a connector'; }
+  setSum('sum-scope',sc);
+  setSum('sum-fields', fields().length+' selected');
+  var f=parseInt(document.getElementById('from').value,10)||0, z=parseInt(document.getElementById('size').value,10)||25;
+  setSum('sum-paging', f+'–'+(f+z));
+  var sf=document.getElementById('sortField').value.trim();
+  setSum('sum-sort', sf?(sf+' '+(document.getElementById('sortDir').value==='true'?'desc':'asc')):'Relevance');
+  setSum('sum-refine', activeFilters.length+' filter'+(activeFilters.length===1?'':'s'));
+}
+var DEFAULT_FIELDS=['title','name','webUrl','lastModifiedDateTime'];
+function resetAll(){
+  var sr=document.querySelector('.scope[value="sites"]'); if(sr)sr.checked=true; onScope();
+  selectedSite=null; var sp=document.getElementById('sitePicked'); if(sp)sp.innerHTML='';
+  var si=document.getElementById('siteSearch'); if(si){si.style.display='block';si.value='';}
+  var srr=document.getElementById('siteResults'); if(srr)srr.innerHTML='';
+  var cs=document.getElementById('connSelect'); if(cs)cs.value='';
+  var fl=document.getElementById('fields'); [].forEach.call(fl.querySelectorAll('.ftag[data-f]'),function(c){c.remove();});
+  DEFAULT_FIELDS.forEach(function(f){makeChip(f,true);});
+  document.getElementById('from').value='0'; document.getElementById('size').value='25';
+  document.getElementById('sortField').value=''; document.getElementById('sortDir').value='true';
+  [].forEach.call(document.querySelectorAll('.facet-f'),function(c){c.checked=false;});
+  activeFilters=[]; renderFacets({}); updateSummaries();
+}
+function toggleClear(){ var q=document.getElementById('q'); document.getElementById('qclear').style.display=q.value?'flex':'none'; }
+function clearQuery(){ var q=document.getElementById('q'); q.value=''; toggleClear(); q.focus(); }
+
+// Per-result copy link + view raw JSON
+var COPY_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+var lastHits=[];
+function copyHit(i,btn){
+  var h=lastHits[i]||{}, r=h.resource||{}, url=r.webUrl||(r.properties&&r.properties.url)||'';
+  if(!url) return;
+  navigator.clipboard.writeText(url).then(function(){ var o=btn.innerHTML; btn.innerHTML='&#10003;'; setTimeout(function(){btn.innerHTML=o;},1000); });
+}
+function rawHit(i,btn){
+  var hit=btn.closest('.hit'), ex=hit.querySelector('.hit-raw');
+  if(ex){ ex.remove(); return; }
+  var d=document.createElement('div'); d.className='hit-raw jsonv'; d.innerHTML=jsonTree(lastHits[i]); hit.appendChild(d);
+}
 function fields(){return [].map.call(document.querySelectorAll('#fields .ftag[data-f]'),function(c){return c.dataset.f;});}
 function facetFields(){return [].map.call(document.querySelectorAll('.facet-f:checked'),function(c){return c.dataset.facet;});}
 var activeFilters=[];
@@ -555,8 +629,9 @@ function makeChip(name,retrievable){
   s.dataset.f=name;
   s.innerHTML=esc(name)+'<i onclick="rm(this)">&times;</i>';
   document.getElementById('addBtn').before(s);
+  updateSummaries();
 }
-function rm(i){i.parentElement.remove();}
+function rm(i){i.parentElement.remove();updateSummaries();}
 function addField(){var inp=document.getElementById('fieldInput');inp.style.display='block';inp.value='';inp.focus();}
 function commitField(){var inp=document.getElementById('fieldInput');var v=inp.value.trim();if(v)makeChip(v,true);inp.style.display='none';}
 function cancelField(){document.getElementById('fieldInput').style.display='none';}
@@ -584,8 +659,8 @@ function renderResults(resp){
   var ch=collectHits(resp),hits=ch.hits,total=ch.total;
   document.getElementById('sum').innerHTML='<b>'+total+'</b> result'+(total===1?'':'s');
   if(!hits.length){cont.innerHTML='<div class="hit"><p class="hit-sum">No results. Open the <b>Response (raw)</b> tab to see why (an error, empty index, or a permission trim).</p></div>';return;}
-  var flds=fields();
-  hits.forEach(function(h){
+  var flds=fields(); lastHits=hits;
+  hits.forEach(function(h,i){
     var r=h.resource||{},p=r.properties||{};
     var title=p.title||r.name||r.subject||p.name||'(no title)';
     var url=r.webUrl||p.url||'';
@@ -597,7 +672,8 @@ function renderResults(resp){
     cont.insertAdjacentHTML('beforeend',
       '<div class="hit"><div class="hit-top"><span class="rank">'+(h.rank!=null?h.rank:'')+'</span>'+
       '<span class="hit-title">'+esc(title)+'</span>'+
-      '<span class="badge '+(isExt?'b-ext':'b-sp')+'" title="'+esc(isExt?'Connector':type)+'">'+esc(label)+'</span></div>'+
+      '<span class="badge '+(isExt?'b-ext':'b-sp')+'" title="'+esc(isExt?'Connector':type)+'">'+esc(label)+'</span>'+
+      '<span class="hit-actions"><button class="hit-btn" title="Copy link" onclick="copyHit('+i+',this)">'+COPY_ICON+'</button><button class="hit-btn" title="View raw JSON" onclick="rawHit('+i+',this)">&lt;/&gt;</button></span></div>'+
       (url?'<div class="hit-url"><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a></div>':'')+
       (h.summary?'<p class="hit-sum">'+summ(h.summary)+'</p>':'')+
       (kv?'<div class="kv">'+kv+'</div>':'')+'</div>');
@@ -652,9 +728,9 @@ function closeFdrops(){ [].forEach.call(document.querySelectorAll('.fdrop.open')
 function addFilter(el){
   if(!el.dataset.tok)return;
   activeFilters.push({field:el.dataset.field,key:el.dataset.key,filter:el.dataset.field+':'+el.dataset.tok});
-  run();
+  updateSummaries(); run();
 }
-function dropFilter(i){ activeFilters.splice(i,1); run(); }
+function dropFilter(i){ activeFilters.splice(i,1); updateSummaries(); run(); }
 
 async function run(){
   if(!signedIn){ await signin(); if(!signedIn) return; }
@@ -703,6 +779,7 @@ async function run(){
       showTab('res');
     }
   }catch(e){showError(String(e));}
+  updateSummaries();
   btn.disabled=false;btn.textContent='Run query';
 }
 
@@ -711,7 +788,7 @@ applyTheme((function(){try{return localStorage.getItem('sqt-theme')||'dark';}cat
 setFieldOptions(SP_PRESETS);
 checkMe();
 [].forEach.call(document.querySelectorAll('.scope'),function(r){r.addEventListener('change',onScope);});
-onScope();
+onScope(); toggleClear();
 document.getElementById('helpDlg').addEventListener('click',function(e){ if(e.target.id==='helpDlg') e.target.close(); });
 </script>
 </body>
