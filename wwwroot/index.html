@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Microsoft Search Query Tool</title>
+<style>
+  :root{
+    --bg:#1e1e1e; --panel:#141414; --panel2:#1e1e1e; --border:#3c3c3c;
+    --text:#d4d4d4; --muted:#9a9a9a; --accent:#3794ff; --mark:#6db0ff;
+    --green:#4ec9b0; --amber:#d7ba7d; --purple:#c586c0; --str:#ce9178;
+    --mono:"Cascadia Code","Consolas",ui-monospace,monospace;
+    --ui:"Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);font-size:14px;line-height:1.5}
+  body::before{content:"";position:fixed;top:-220px;left:-160px;width:680px;height:680px;border-radius:50%;background:radial-gradient(closest-side,rgba(55,148,255,.15),transparent 70%);pointer-events:none;z-index:0}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px;position:relative;z-index:1}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .mk{width:42px;height:42px;border-radius:11px;background:#141b26;color:var(--mark);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:18px;border:1px solid #2a3543;flex:none}
+  .htxt{flex:1;min-width:220px}
+  h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em}
+  .tag{color:var(--muted);font-size:12.5px;margin:2px 0 0}
+  .hright{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .hbadge{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:650;color:#4fc1ff;background:#12233c;border:1px solid #1f4b6e;padding:5px 12px;border-radius:100px;white-space:nowrap}
+  .hbadge .dot{width:7px;height:7px;border-radius:50%;background:#89d185}
+  .who{font-size:11.5px;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 12px;white-space:nowrap}
+  .who b{color:var(--text)}
+  .sdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#89d185;margin-right:5px;vertical-align:middle}
+  /* M365 suite bar */
+  .suitebar{position:relative;display:flex;align-items:center;gap:10px;height:50px;padding:0 4px;border-bottom:1px solid var(--border);margin-bottom:10px}
+  .sbtn{background:transparent;border:0;color:var(--muted);width:38px;height:38px;border-radius:8px;display:grid;place-items:center;cursor:pointer;font-size:16px;line-height:1}
+  .sbtn:hover{background:var(--panel2);color:var(--text)}
+  .sbrand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;color:var(--text);white-space:nowrap}
+  .sbrand .mk{width:30px;height:30px;border-radius:8px;background:#141b26;color:var(--mark);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:14px;border:1px solid #2a3543}
+  .sbadge{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:650;color:#4fc1ff;background:#12233c;border:1px solid #1f4b6e;padding:4px 11px;border-radius:100px;white-space:nowrap}
+  .sbadge .dot{width:6px;height:6px;border-radius:50%;background:#89d185}
+  .sspace{flex:1}
+  .avatar{background:#3a3a3a;color:#fff;border-radius:50%;font-weight:700;font-size:13px;width:34px;height:34px}
+  .avatar.on,.avatar:hover{background:var(--accent);color:#04121f}
+  .flyout{position:absolute;top:52px;min-width:224px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:6px;display:none;z-index:30;box-shadow:0 22px 55px -22px rgba(0,0,0,.7)}
+  .flyout.on{display:block}
+  #m-apps{left:0} #m-set{right:44px} #m-acct{right:2px}
+  .fly-h{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 10px 4px}
+  .fly-id{font-size:12px;color:var(--text);padding:2px 10px 8px;font-family:var(--mono);word-break:break-all;border-bottom:1px solid var(--border);margin-bottom:4px}
+  .flyout a{display:block;padding:8px 10px;border-radius:6px;color:var(--text);font-size:13px;cursor:pointer;text-decoration:none}
+  .flyout a:hover{background:var(--panel2);text-decoration:none}
+  @media(max-width:640px){.sbadge{display:none}}
+  /* Light theme */
+  :root[data-theme="light"]{
+    --bg:#f3f4f6; --panel:#ffffff; --panel2:#eef0f3; --border:#dfe1e6;
+    --text:#1b1b1f; --muted:#5c6b7a; --accent:#0f6cbd; --mark:#0f6cbd;
+    --green:#0a7d4b; --amber:#8a6d00; --purple:#8250df; --str:#a31515;
+  }
+  :root[data-theme="light"] .j-key{color:#0451a5}
+  :root[data-theme="light"] .j-str{color:#a31515}
+  :root[data-theme="light"] .j-num{color:#098658}
+  :root[data-theme="light"] .j-bool,:root[data-theme="light"] .j-null{color:#0000ff}
+  :root[data-theme="light"] .j-punc{color:#5c6b7a}
+  :root[data-theme="light"] body::before{background:radial-gradient(closest-side,rgba(15,108,189,.10),transparent 70%)}
+  :root[data-theme="light"] .avatar{background:#e1e3e6;color:#1b1b1f}
+  :root[data-theme="light"] .avatar.on,:root[data-theme="light"] .avatar:hover{background:var(--accent);color:#fff}
+  :root[data-theme="light"] .sbrand .mk{background:#eaf2fb;color:#0f6cbd;border-color:#cfe0f4}
+  :root[data-theme="light"] .sbadge{color:#0f6cbd;background:#eaf2fb;border-color:#cfe0f4}
+  :root[data-theme="light"] .run{color:#fff}
+  :root[data-theme="light"] .kv .k{color:#8a6d00}
+  .signin{background:var(--accent);color:#04121f;border:0;border-radius:20px;padding:6px 16px;font-weight:600;font-size:12px;cursor:pointer}
+  .signin:hover{filter:brightness(1.08)}
+  .who a{cursor:pointer;color:var(--accent)}
+  .qbar{display:flex;gap:10px;margin:18px 0 16px}
+  .qbar .qin{flex:1;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:0 12px}
+  .qbar .qin:focus-within{border-color:var(--accent)}
+  .qbar .mag{color:var(--muted)}
+  .qbar input{flex:1;background:transparent;border:0;color:var(--text);font-family:var(--mono);font-size:14px;padding:12px 0;outline:none}
+  .run{background:var(--accent);color:#04121f;border:0;border-radius:9px;padding:0 22px;font-weight:600;font-size:14px;cursor:pointer}
+  .run:hover{filter:brightness(1.08)} .run:disabled{opacity:.6;cursor:default}
+  .kql{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:-2px 0 14px}
+  .kql-lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-right:2px}
+  .kchip{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-family:var(--mono);font-size:11.5px;color:var(--str);cursor:pointer}
+  .kchip:hover{border-color:var(--accent);color:var(--text)}
+  .layout{display:grid;grid-template-columns:270px 1fr;gap:18px}
+  @media(max-width:820px){.layout{grid-template-columns:1fr}}
+  /* Desktop: lock the shell to the viewport; sidebar and results scroll on their own. */
+  @media(min-width:821px){
+    html,body{height:100%}
+    .wrap{height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:16px}
+    .suitebar,.subtitle,.qbar,.kql{flex:none}
+    .layout{flex:1;min-height:0}
+    .side{overflow-y:auto}
+    .main{display:flex;flex-direction:column;min-height:0}
+    .pane.on{flex:1 1 auto;overflow-y:auto}
+    footer{flex:none;margin-top:12px}
+  }
+  .side{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+  .side h3{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 9px;font-weight:600}
+  .grp{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--border)}
+  .grp:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+  .opt{display:flex;align-items:center;gap:9px;padding:5px 0;cursor:pointer;font-size:13.5px}
+  .opt input{accent-color:var(--accent);width:15px;height:15px}
+  .opt .sub{color:var(--muted);font-size:11.5px;margin-left:auto}
+  .conn{margin-top:8px}
+  select:disabled{opacity:.5;cursor:not-allowed}
+  select.needpick{border-color:var(--accent);box-shadow:0 0 0 1px rgba(55,148,255,.4)}
+  select:focus,.side input.txt:focus,.two input:focus{outline:none;border-color:var(--accent)}
+  .side input.txt{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-family:var(--mono);font-size:12.5px}
+  select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-family:var(--ui);font-size:13px}
+  .fields{display:flex;flex-wrap:wrap;gap:6px}
+  .ftag{font-family:var(--mono);font-size:11.5px;background:var(--panel2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;color:var(--str);display:inline-flex;align-items:center}
+  .ftag i{font-style:normal;color:var(--muted);margin-left:6px;cursor:pointer;font-size:13px;line-height:1}
+  .ftag i:hover{color:#f14c4c}
+  .ftag.add{color:var(--accent);cursor:pointer;border-style:dashed}
+  .ftag.off{opacity:.45;text-decoration:line-through}
+  #fieldInput{margin-top:8px}
+  .fhint{color:var(--muted);font-size:11px;margin:8px 0 0} .fhint a{cursor:pointer}
+  .two{display:flex;gap:10px}
+  .two label{flex:1;font-size:11.5px;color:var(--muted)}
+  .two input{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:13px;margin-top:3px}
+  .main{min-width:0}
+  .sumbar{color:var(--muted);font-size:12.5px;margin-bottom:10px} .sumbar b{color:var(--text)}
+  .errbar{background:rgba(241,76,76,.12);border:1px solid rgba(241,76,76,.4);border-left:3px solid #f14c4c;color:#f1b0b0;border-radius:8px;padding:11px 14px;margin-bottom:12px;font-size:13px}
+  .pg{cursor:pointer;color:var(--accent);margin-left:8px}
+  .facets{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+  .facets:empty{margin:0}
+  .afchip{display:inline-flex;align-items:center;background:rgba(55,148,255,.12);border:1px solid var(--accent);border-radius:20px;padding:4px 11px;color:var(--text);font-size:12.5px}
+  .afchip i{margin-left:7px;cursor:pointer;color:var(--muted);font-style:normal} .afchip i:hover{color:#f14c4c}
+  .fdrop{position:relative}
+  .fdrop-btn{background:var(--panel2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12.5px;color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .fdrop-btn:hover{border-color:var(--accent)}
+  .fdrop-btn .caret{color:var(--muted);font-size:9px}
+  .fdrop-menu{position:absolute;top:34px;left:0;min-width:210px;max-height:300px;overflow-y:auto;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:6px;display:none;z-index:25;box-shadow:0 20px 50px -20px rgba(0,0,0,.7)}
+  .fdrop.open .fdrop-menu{display:block}
+  .fdrop-menu a{display:flex;justify-content:space-between;gap:14px;padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text);cursor:pointer}
+  .fdrop-menu a:hover{background:var(--panel2);color:var(--accent)}
+  .fdrop-menu .bcount{color:var(--muted)}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:12px;align-items:center;flex-wrap:wrap}
+  .tabsum{margin-left:auto;color:var(--muted);font-size:12.5px;white-space:nowrap;padding-bottom:2px}
+  .tabsum b{color:var(--text)}
+  .ready{color:var(--muted);font-size:13px;padding:6px 2px}
+  .vfy-block{margin-bottom:16px}
+  .vfy-h{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+  .vfy-row{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:12.5px;word-break:break-all}
+  .vfy-row a{color:var(--accent)} .vfy-row code{color:#bd9}
+  .vfy-note{font-size:12px;color:var(--muted);margin:6px 0;line-height:1.5}
+  .tab{padding:8px 14px;cursor:pointer;font-size:13px;color:var(--muted);border-bottom:2px solid transparent}
+  .tab.on{color:var(--text);border-bottom-color:var(--accent)}
+  .pane{display:none} .pane.on{display:block}
+  .hit{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:13px 15px;margin-bottom:10px}
+  .hit-top{display:flex;align-items:baseline;gap:10px}
+  .rank{font-family:var(--mono);color:var(--muted);font-size:12px;flex:none}
+  .hit-title{font-weight:600;font-size:15px}
+  .badge{font-size:10.5px;border-radius:4px;padding:2px 7px;flex:none;margin-left:auto;white-space:nowrap}
+  .b-ext{background:rgba(197,134,192,.16);color:var(--purple)}
+  .b-sp{background:rgba(78,201,176,.14);color:var(--green)}
+  .hit-url{font-family:var(--mono);font-size:12px;margin:3px 0 7px;word-break:break-all}
+  .hit-sum{color:var(--muted);font-size:13px;margin:0 0 10px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:12.5px;border-top:1px solid var(--border);padding-top:9px}
+  .kv .k{font-family:var(--mono);color:var(--amber)} .kv .v{font-family:var(--mono);color:var(--text);word-break:break-all}
+  pre{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:15px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-word}
+  .j-key{color:#9cdcfe} .j-str{color:#ce9178} .j-num{color:#b5cea8} .j-bool{color:#569cd6} .j-null{color:#569cd6} .j-punc{color:var(--muted)}
+  .jsonv{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7;box-shadow:0 24px 60px -34px rgba(0,0,0,.75)}
+  .jt-children{display:block;margin-left:14px;border-left:1px solid rgba(255,255,255,.08);padding-left:8px}
+  .jt-row{display:block;white-space:pre-wrap;word-break:break-word}
+  .jt-tog{cursor:pointer;color:var(--muted);display:inline-block;width:12px;text-align:center;user-select:none}
+  .jt-tog:hover{color:var(--text)}
+  .jt-ph{display:none;color:var(--muted);padding:0 5px}
+  .jt.collapsed>.jt-children{display:none}
+  .jt.collapsed>.jt-ph{display:inline}
+  footer{margin-top:18px;color:var(--muted);font-size:11.5px;border-top:1px solid var(--border);padding-top:12px;display:flex;justify-content:space-between;align-items:center;gap:16px;white-space:nowrap;overflow:hidden}
+  footer code{font-family:var(--mono);color:#bd9}
+  footer>span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+  footer>a{color:var(--accent);font-weight:600;white-space:nowrap}
+  .subtitle{color:var(--muted);font-size:13px;margin:0 0 14px}
+  .dlg{border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text);max-width:620px;width:calc(100% - 40px);padding:0;box-shadow:0 40px 100px -30px rgba(0,0,0,.8)}
+  .dlg::backdrop{background:rgba(0,0,0,.55)}
+  .dlg-head{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border)}
+  .dlg-head h2{margin:0;font-size:16px}
+  .dlg-x{background:transparent;border:0;color:var(--muted);font-size:22px;cursor:pointer;line-height:1}
+  .dlg-x:hover{color:var(--text)}
+  .dlg-body{padding:16px 22px 22px;font-size:13.5px;line-height:1.6;max-height:70vh;overflow-y:auto}
+  .dlg-body h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:16px 0 5px}
+  .dlg-body h3:first-child{margin-top:0}
+  .dlg-body ol,.dlg-body ul{margin:5px 0;padding-left:20px}
+  .dlg-body li{margin:4px 0} .dlg-body p{margin:5px 0}
+  .dlg-body code{font-family:var(--mono);color:#bd9;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="suitebar">
+    <button class="sbtn" title="Apps" aria-label="App launcher" onclick="menu('m-apps',event)">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+        <rect x="1" y="1" width="3" height="3" rx="1"/><rect x="6" y="1" width="3" height="3" rx="1"/><rect x="11" y="1" width="3" height="3" rx="1"/>
+        <rect x="1" y="6" width="3" height="3" rx="1"/><rect x="6" y="6" width="3" height="3" rx="1"/><rect x="11" y="6" width="3" height="3" rx="1"/>
+        <rect x="1" y="11" width="3" height="3" rx="1"/><rect x="6" y="11" width="3" height="3" rx="1"/><rect x="11" y="11" width="3" height="3" rx="1"/>
+      </svg>
+    </button>
+    <span class="sbrand"><span class="mk"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg></span>Microsoft Search Query Tool</span>
+    <span class="sbadge"><span class="dot"></span>SharePoint Online / Microsoft 365</span>
+    <div class="sspace"></div>
+    <button class="sbtn" title="How to use" aria-label="Help" onclick="document.getElementById('helpDlg').showModal()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.7"/><path d="M12 16.4h.01"/></svg></button>
+    <button class="sbtn" id="themeBtn" title="Toggle light / dark" onclick="toggleTheme()">&#9790;</button>
+    <button class="sbtn" title="Settings" onclick="menu('m-set',event)">&#9881;</button>
+    <button class="sbtn avatar" id="avatarBtn" title="Account" onclick="menu('m-acct',event)"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v1h18v-1c0-3.5-4-6-9-6Z"/></svg></button>
+
+    <div class="flyout" id="m-apps">
+      <div class="fly-h">Admin centers</div>
+      <a href="https://admin.microsoft.com" target="_blank" rel="noopener">Microsoft 365 admin</a>
+      <a href="https://admin.microsoft.com/sharepoint" target="_blank" rel="noopener">SharePoint admin</a>
+      <a href="https://admin.microsoft.com/#/MicrosoftSearch" target="_blank" rel="noopener">Search &amp; Intelligence</a>
+      <a href="https://admin.cloud.microsoft/#/copilot/connectors" target="_blank" rel="noopener">Copilot Connectors</a>
+      <a href="https://entra.microsoft.com" target="_blank" rel="noopener">Microsoft Entra admin</a>
+      <a href="https://developer.microsoft.com/graph/graph-explorer" target="_blank" rel="noopener">Graph Explorer</a>
+    </div>
+    <div class="flyout" id="m-set">
+      <div class="fly-h">Settings</div>
+      <a onclick="toggleTheme()">Toggle light / dark theme</a>
+      <a onclick="location.reload()">Reload tool</a>
+    </div>
+    <div class="flyout" id="m-acct"><div class="fly-h">Account</div><a onclick="signin()">Sign in</a></div>
+  </div>
+
+  <p class="subtitle">Build and test Microsoft Search queries across SharePoint, OneDrive and Copilot connectors &mdash; and read the raw response.</p>
+
+  <div class="qbar">
+    <div class="qin"><span class="mag">&#128269;</span>
+      <input id="q" value="format sharepoint list column" spellcheck="false"
+             onkeydown="if(event.key==='Enter')run()" aria-label="Query">
+    </div>
+    <button class="run" id="runBtn" onclick="run()">Run query</button>
+  </div>
+
+  <div class="kql">
+    <span class="kql-lbl">KQL</span>
+    <button class="kchip" onclick="kqlAdd('filetype:docx')">filetype:docx</button>
+    <button class="kchip" onclick="kqlAdd('Path:&quot;&quot;')">Path:""</button>
+    <button class="kchip" onclick="kqlAdd('author:&quot;&quot;')">author:""</button>
+    <button class="kchip" onclick="kqlAdd('title:&quot;&quot;')">title:""</button>
+    <button class="kchip" onclick="kqlAdd('AND')">AND</button>
+    <button class="kchip" onclick="kqlAdd('OR')">OR</button>
+    <button class="kchip" onclick="kqlAdd('NOT')">NOT</button>
+  </div>
+
+  <div class="layout">
+    <aside class="side">
+      <div class="grp">
+        <h3>Sources (entity types)</h3>
+        <label class="opt"><input type="checkbox" class="ent" data-entity="driveItem" checked> SharePoint &amp; OneDrive <span class="sub">driveItem</span></label>
+        <label class="opt"><input type="checkbox" class="ent" data-entity="listItem" checked> List items <span class="sub">listItem</span></label>
+        <label class="opt"><input type="checkbox" class="ent" data-entity="site"> Sites <span class="sub">site</span></label>
+        <label class="opt"><input type="checkbox" class="ent" data-entity="externalItem" checked> Connectors <span class="sub">externalItem</span></label>
+        <div class="conn">
+          <select id="connSelect" onchange="onConn();updateConn()">
+            <option value="">&mdash; loading connections &mdash;</option>
+          </select>
+          <p class="fhint" id="connHint">Pick a connection for external-item results.</p>
+        </div>
+      </div>
+
+      <div class="grp">
+        <h3>Fields to return</h3>
+        <div class="fields" id="fields">
+          <span class="ftag" data-f="title">title<i onclick="rm(this)">&times;</i></span>
+          <span class="ftag" data-f="name">name<i onclick="rm(this)">&times;</i></span>
+          <span class="ftag" data-f="webUrl">webUrl<i onclick="rm(this)">&times;</i></span>
+          <span class="ftag" data-f="lastModifiedDateTime">lastModifiedDateTime<i onclick="rm(this)">&times;</i></span>
+          <span class="ftag add" id="addBtn" onclick="addField()">+ add</span>
+        </div>
+        <input class="txt" id="fieldInput" list="fieldOptions" style="display:none" spellcheck="false"
+               placeholder="Pick or type a property"
+               onkeydown="if(event.key==='Enter')commitField();if(event.key==='Escape')cancelField()">
+        <datalist id="fieldOptions"></datalist>
+        <p class="fhint">Pick from the list, or type any retrievable property. <a onclick="loadSchema()">Add all schema fields</a></p>
+      </div>
+
+      <div class="grp">
+        <h3>Paging</h3>
+        <div class="two">
+          <label>From<input id="from" value="0"></label>
+          <label>Size<input id="size" value="25"></label>
+        </div>
+      </div>
+
+      <div class="grp">
+        <h3>Sort</h3>
+        <input class="txt" id="sortField" list="fieldOptions" spellcheck="false" placeholder="Relevance (default)">
+        <select id="sortDir" style="margin-top:8px">
+          <option value="true" selected>Descending</option>
+          <option value="false">Ascending</option>
+        </select>
+      </div>
+
+      <div class="grp">
+        <h3>Refine (facets)</h3>
+        <label class="opt"><input type="checkbox" class="facet-f" data-facet="fileType"> File type <span class="sub">fileType</span></label>
+        <label class="opt"><input type="checkbox" class="facet-f" data-facet="contentSource"> Source <span class="sub">contentSource</span></label>
+        <label class="opt"><input type="checkbox" class="facet-f" data-facet="author"> Author <span class="sub">author</span></label>
+        <p class="fhint">Only refinable properties return facets; others error.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div id="err" class="errbar" style="display:none"></div>
+      <div id="facets" class="facets"></div>
+      <div class="tabs">
+        <div class="tab on" data-p="res" onclick="showTab('res')">Results</div>
+        <div class="tab" data-p="req" onclick="showTab('req')">Request</div>
+        <div class="tab" data-p="rsp" onclick="showTab('rsp')">Response (raw)</div>
+        <div class="tab" data-p="vfy" onclick="showTab('vfy')">Verify</div>
+        <div class="tabsum"><span id="sum"></span><span id="pager"></span></div>
+      </div>
+      <div class="pane on" id="res"><p class="ready">Ready. Enter a query and press <b>Run query</b>.</p></div>
+      <div class="pane" id="req"><div id="reqPre" class="jsonv">The request body appears here after you run a query.</div></div>
+      <div class="pane" id="rsp"><div id="rspPre" class="jsonv">The raw Graph response appears here after you run a query.</div></div>
+      <div class="pane" id="vfy">
+        <div class="vfy-block">
+          <div class="vfy-h">KQL query text</div>
+          <div class="vfy-row"><code id="vfyKql">Run a query to see it here.</code></div>
+        </div>
+        <div class="vfy-block" id="vfySpBlock" style="display:none">
+          <div class="vfy-h">Open in SharePoint enterprise search</div>
+          <div class="vfy-row"><a id="vfySp" target="_blank" rel="noopener"></a></div>
+        </div>
+        <div class="vfy-block" id="vfyRestBlock" style="display:none">
+          <div class="vfy-h">SharePoint search REST (raw results)</div>
+          <div class="vfy-row"><a id="vfyRest" target="_blank" rel="noopener"></a></div>
+        </div>
+        <div class="vfy-block">
+          <div class="vfy-h">Graph Search API</div>
+          <p class="vfy-note">This tool calls <code>POST /search/query</code>, so it cannot be opened as a browser URL. Paste the body from the <b>Request</b> tab into <a href="https://developer.microsoft.com/graph/graph-explorer" target="_blank" rel="noopener">Graph Explorer</a> to reproduce the exact call, including connector results.</p>
+        </div>
+        <p class="vfy-note">Note: SharePoint enterprise search covers SharePoint and OneDrive only (not connectors) and uses a different index, so its results and ranking may not match this tool exactly.</p>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <span>Microsoft Graph <code>POST /search/query</code> &middot; delegated, read-only &middot; no content leaves your tenant</span>
+    <a href="https://www.fivenumber.com/" target="_blank" rel="noopener">fivenumber.com</a>
+  </footer>
+
+  <dialog id="helpDlg" class="dlg">
+    <div class="dlg-head"><h2>How to use this tool</h2><button class="dlg-x" onclick="document.getElementById('helpDlg').close()" aria-label="Close">&times;</button></div>
+    <div class="dlg-body">
+      <h3>What it does</h3>
+      <p>Build and run Microsoft Search queries against the Graph <code>POST /search/query</code> API and read the exact request and response. It searches <b>SharePoint, OneDrive and Copilot connectors</b> from one place &mdash; something the classic SharePoint Search Query Tool cannot do.</p>
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>A Microsoft 365 work account that can read the content you want to query.</li>
+        <li>On first sign-in, an admin consents to three read-only scopes: <code>Sites.Read.All</code>, <code>ExternalItem.Read.All</code>, <code>ExternalConnection.Read.All</code>.</li>
+        <li>To query a Copilot connector, pick its connection from the dropdown (listed automatically once you sign in).</li>
+      </ul>
+      <h3>How it works</h3>
+      <p>The tool runs on your machine and signs you in with your own delegated token. Every query is permission-trimmed to you, and no content leaves your tenant. Results come from the same Microsoft Search index that Copilot and the search box use.</p>
+      <h3>How to use it</h3>
+      <ol>
+        <li>Click the account circle (top-right) and sign in.</li>
+        <li>Type a query.</li>
+        <li>Tick the sources you want. For <b>Connectors</b>, pick a connection.</li>
+        <li>Optionally set fields to return, a sort order, or facets to refine.</li>
+        <li>Press <b>Run query</b>.</li>
+        <li>Read the <b>Results</b>, or open <b>Request</b> / <b>Response (raw)</b> for the exact Graph call.</li>
+      </ol>
+      <h3>KQL tips</h3>
+      <p>The query box accepts <b>KQL</b>. A few that work:</p>
+      <ul>
+        <li><code>filetype:docx</code> &mdash; restrict by file type</li>
+        <li><code>Path:"https://contoso.sharepoint.com/sites/HR"</code> &mdash; restrict to a site</li>
+        <li><code>author:"Jane"</code>, <code>title:policy</code> &mdash; property restrictions</li>
+        <li><code>column*</code> &mdash; prefix wildcard (no leading wildcard or <code>*.*</code> match-all)</li>
+        <li><code>sharepoint AND (list OR column) NOT archive</code> &mdash; boolean operators</li>
+      </ul>
+      <p>Property restrictions like <code>Path:</code> and <code>filetype:</code> apply to <b>SharePoint and OneDrive</b>, not connector items &mdash; those use their own connector schema properties.</p>
+    </div>
+  </dialog>
+</div>
+
+<script>
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+// Clean a Graph search summary: convert <c0>..</c0> hit highlights to bold, <ddd/> to an
+// ellipsis, and strip any other markup that leaked from the crawled page.
+function summ(s){
+  s=esc(s);
+  s=s.replace(/&lt;ddd\/&gt;/g,'…');
+  s=s.replace(/&lt;(\/?)c\d&gt;/g,function(_,sl){return sl?'</b>':'<b>';});
+  s=s.replace(/&lt;[^&]*?&gt;/g,'');
+  return s.trim();
+}
+// Collapsible JSON tree (click a node's arrow to fold/unfold it).
+function jval(v){
+  if(v===null) return '<span class="j-null">null</span>';
+  var t=typeof v;
+  if(t==='number')  return '<span class="j-num">'+v+'</span>';
+  if(t==='boolean') return '<span class="j-bool">'+v+'</span>';
+  if(t==='string')  return '<span class="j-str">"'+esc(v)+'"</span>';
+  if(Array.isArray(v)) return jbracket(v,'[',']',true);
+  if(t==='object')  return jbracket(v,'{','}',false);
+  return esc(String(v));
+}
+function jbracket(node,open,close,isArr){
+  var keys=isArr?null:Object.keys(node);
+  var n=isArr?node.length:keys.length;
+  if(!n) return '<span class="j-punc">'+open+close+'</span>';
+  var rows='';
+  for(var i=0;i<n;i++){
+    var val=isArr?node[i]:node[keys[i]];
+    var keyHtml=isArr?'':'<span class="j-key">"'+esc(keys[i])+'"</span><span class="j-punc">: </span>';
+    rows+='<span class="jt-row">'+keyHtml+jval(val)+(i<n-1?'<span class="j-punc">,</span>':'')+'</span>';
+  }
+  return '<span class="jt"><span class="jt-tog" onclick="jtToggle(this)">▾</span>'+
+         '<span class="j-punc">'+open+'</span><span class="jt-ph">…</span>'+
+         '<span class="jt-children">'+rows+'</span>'+
+         '<span class="j-punc jt-close">'+close+'</span></span>';
+}
+function jtToggle(t){var p=t.parentElement;var c=p.classList.toggle('collapsed');t.textContent=c?'▸':'▾';}
+function jsonTree(obj){return jval(obj);}
+function showTab(id){
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id===id);});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.p===id);});
+}
+function entities(){return [].map.call(document.querySelectorAll('.ent:checked'),function(c){return c.dataset.entity;});}
+function fields(){return [].map.call(document.querySelectorAll('#fields .ftag[data-f]'),function(c){return c.dataset.f;});}
+function facetFields(){return [].map.call(document.querySelectorAll('.facet-f:checked'),function(c){return c.dataset.facet;});}
+var activeFilters=[];
+var connNames={};
+var spRoot='';
+function connId(){var s=document.getElementById('connSelect');return s?s.value.trim():'';}
+
+var PERSON='<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v1h18v-1c0-3.5-4-6-9-6Z"/></svg>';
+var signedIn=false, currentUser=null;
+function setAuth(user){
+  signedIn=!!user; currentUser=user||null;
+  var av=document.getElementById('avatarBtn'), acct=document.getElementById('m-acct');
+  if(user){
+    av.textContent=(String(user).charAt(0)||'?').toUpperCase(); av.classList.add('on');
+    acct.innerHTML='<div class="fly-h">Signed in</div><div class="fly-id">'+esc(user)+'</div>'+
+      '<a onclick="switchUser()">Sign in as different user</a><a onclick="signout()">Sign out</a>';
+  } else {
+    av.innerHTML=PERSON; av.classList.remove('on');
+    acct.innerHTML='<div class="fly-h">Account</div><a onclick="signin()">Sign in</a>';
+    var sel=document.getElementById('connSelect');
+    if(sel) sel.innerHTML='<option value="">&mdash; sign in to list connections &mdash;</option>';
+  }
+}
+async function checkMe(){
+  try{ var r=await fetch('/api/me'); var d=await r.json(); setAuth(d.signedIn?d.user:null); if(d.signedIn)loadConnections(); }
+  catch(e){ setAuth(null); }
+}
+async function signin(){
+  closeMenus(); var av=document.getElementById('avatarBtn'); av.textContent='…';
+  try{
+    var r=await fetch('/api/signin',{method:'POST'}); var d=await r.json();
+    if(d.signedIn){ setAuth(d.user); loadConnections(); }
+    else { setAuth(null); if(d.error)showError('Sign in failed: '+d.error); }
+  }catch(e){ setAuth(null); showError('Sign in failed: '+e); }
+}
+async function switchUser(){
+  closeMenus(); var av=document.getElementById('avatarBtn'); av.textContent='…';
+  try{
+    var r=await fetch('/api/switch',{method:'POST'}); var d=await r.json();
+    if(d.signedIn){ setAuth(d.user); activeFilters=[]; loadConnections(); }
+    else { setAuth(currentUser); if(d.error)showError('Switch failed: '+d.error); }
+  }catch(e){ setAuth(currentUser); showError('Switch failed: '+e); }
+}
+async function signout(){
+  closeMenus(); try{ await fetch('/api/signout',{method:'POST'}); }catch(e){}
+  setAuth(null);
+}
+
+// Suite-bar flyout menus + theme
+function menu(id,e){ if(e) e.stopPropagation(); var f=document.getElementById(id),open=f.classList.contains('on'); closeMenus(); if(!open) f.classList.add('on'); }
+function closeMenus(){ [].forEach.call(document.querySelectorAll('.flyout.on'),function(f){f.classList.remove('on');}); }
+document.addEventListener('click',function(e){ if(!e.target.closest('.suitebar')) closeMenus(); if(!e.target.closest('.fdrop')) closeFdrops(); });
+function applyTheme(t){ document.documentElement.setAttribute('data-theme',t); document.getElementById('themeBtn').innerHTML=(t==='light'?'&#9728;':'&#9790;'); try{localStorage.setItem('sqt-theme',t);}catch(e){} }
+function toggleTheme(){ closeMenus(); var cur=document.documentElement.getAttribute('data-theme')||'dark'; applyTheme(cur==='light'?'dark':'light'); }
+// Insert a KQL snippet into the query box; drop the caret inside trailing quotes.
+function kqlAdd(snip){
+  var q=document.getElementById('q'), cur=q.value;
+  var sep=(cur && !/\s$/.test(cur))?' ':'';
+  q.value=cur+sep+snip; q.focus();
+  if(/""$/.test(snip)){ var p=q.value.length-1; q.setSelectionRange(p,p); }
+  else { q.setSelectionRange(q.value.length,q.value.length); }
+}
+
+var SP_PRESETS=['title','name','webUrl','lastModifiedDateTime','createdDateTime','createdBy','size','fileType','author','path','siteName','parentReference'];
+function setFieldOptions(list){
+  var seen={},out=[];
+  list.forEach(function(f){if(f&&!seen[f]){seen[f]=1;out.push(f);}});
+  document.getElementById('fieldOptions').innerHTML=out.map(function(f){return '<option value="'+esc(f)+'">';}).join('');
+}
+async function loadRoot(){
+  try{ var r=await fetch('/api/root'); var d=await r.json(); spRoot=(d&&d.webUrl)?String(d.webUrl).replace(/\/+$/,''):''; }catch(e){ spRoot=''; }
+}
+async function loadConnections(){
+  loadRoot();
+  var sel=document.getElementById('connSelect');
+  try{
+    var r=await fetch('/api/connections'); var d=await r.json();
+    var arr=(d&&d.value)||[];
+    connNames={}; arr.forEach(function(c){connNames[String(c.id).toLowerCase()]=c.name||c.id;});
+    if(!arr.length){sel.innerHTML='<option value="">&mdash; no connections found &mdash;</option>';return;}
+    sel.innerHTML='<option value="">&mdash; pick a connection &mdash;</option>'+
+      arr.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name||c.id)+(c.state&&c.state!=='ready'?' ('+esc(c.state)+')':'')+'</option>';}).join('');
+  }catch(e){ sel.innerHTML='<option value="">&mdash; could not list connections &mdash;</option>'; }
+}
+async function onConn(){
+  var id=connId(); if(!id){setFieldOptions(SP_PRESETS);return;}
+  try{
+    var r=await fetch('/api/schema?connectionId='+encodeURIComponent(id)); var s=await r.json();
+    var props=((s&&s.properties)||[]).filter(function(p){return p.isRetrievable!==false;}).map(function(p){return p.name;});
+    setFieldOptions(props.concat(SP_PRESETS));
+    document.getElementById('connHint').textContent=props.length?props.length+' retrievable fields available in the picker.':'Pick a connection for external-item results.';
+  }catch(e){ setFieldOptions(SP_PRESETS); }
+}
+// Enable/disable + prompt on the connection picker based on the Connectors checkbox.
+function updateConn(){
+  var cb=document.querySelector('.ent[data-entity="externalItem"]');
+  var sel=document.getElementById('connSelect');
+  if(!cb||!sel) return;
+  sel.disabled=!cb.checked;
+  if(!cb.checked) sel.value='';
+  sel.classList.toggle('needpick', cb.checked && !sel.value);
+}
+
+function makeChip(name,retrievable){
+  var s=document.createElement('span');
+  s.className='ftag'+(retrievable===false?' off':'');
+  s.dataset.f=name;
+  s.innerHTML=esc(name)+'<i onclick="rm(this)">&times;</i>';
+  document.getElementById('addBtn').before(s);
+}
+function rm(i){i.parentElement.remove();}
+function addField(){var inp=document.getElementById('fieldInput');inp.style.display='block';inp.value='';inp.focus();}
+function commitField(){var inp=document.getElementById('fieldInput');var v=inp.value.trim();if(v)makeChip(v,true);inp.style.display='none';}
+function cancelField(){document.getElementById('fieldInput').style.display='none';}
+
+async function loadSchema(){
+  var cid=connId();
+  if(!cid){showError('Pick a connection first.');return;}
+  try{
+    var r=await fetch('/api/schema?connectionId='+encodeURIComponent(cid));
+    var s=await r.json();
+    var props=(s&&s.properties)||[];
+    if(!props.length){showError('No schema properties returned. Check the connection id and the Response tab.');return;}
+    var have={};[].forEach.call(document.querySelectorAll('#fields .ftag[data-f]'),function(c){have[c.dataset.f]=1;});
+    props.forEach(function(p){if(!have[p.name])makeChip(p.name,p.isRetrievable!==false);});
+  }catch(e){showError('Schema call failed: '+e);}
+}
+
+function collectHits(resp){
+  var hits=[],total=0,more=false;
+  try{(resp.value[0].hitsContainers||[]).forEach(function(hc){hits=hits.concat(hc.hits||[]);total+=(hc.total||0);more=more||!!hc.moreResultsAvailable;});}catch(e){}
+  return {hits:hits,total:total,more:more};
+}
+function renderResults(resp){
+  var cont=document.getElementById('res');cont.innerHTML='';
+  var ch=collectHits(resp),hits=ch.hits,total=ch.total;
+  document.getElementById('sum').innerHTML='<b>'+total+'</b> result'+(total===1?'':'s');
+  if(!hits.length){cont.innerHTML='<div class="hit"><p class="hit-sum">No results. Open the <b>Response (raw)</b> tab to see why (an error, empty index, or a permission trim).</p></div>';return;}
+  var flds=fields();
+  hits.forEach(function(h){
+    var r=h.resource||{},p=r.properties||{};
+    var title=p.title||r.name||r.subject||p.name||'(no title)';
+    var url=r.webUrl||p.url||'';
+    var type=String(r['@odata.type']||'').split('.').pop();
+    var isExt=/external/i.test(type);
+    var label=isExt?(connNames[String(h.contentSource||'').toLowerCase()]||h.contentSource||'Connector'):(type||'result');
+    var kv='';
+    flds.forEach(function(f){var v=(p[f]!=null?p[f]:r[f]);if(v!=null&&typeof v!=='object')kv+='<span class="k">'+esc(f)+'</span><span class="v">'+esc(v)+'</span>';});
+    cont.insertAdjacentHTML('beforeend',
+      '<div class="hit"><div class="hit-top"><span class="rank">'+(h.rank!=null?h.rank:'')+'</span>'+
+      '<span class="hit-title">'+esc(title)+'</span>'+
+      '<span class="badge '+(isExt?'b-ext':'b-sp')+'" title="'+esc(isExt?'Connector':type)+'">'+esc(label)+'</span></div>'+
+      (url?'<div class="hit-url"><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a></div>':'')+
+      (h.summary?'<p class="hit-sum">'+summ(h.summary)+'</p>':'')+
+      (kv?'<div class="kv">'+kv+'</div>':'')+'</div>');
+  });
+}
+function renderVerify(q){
+  document.getElementById('vfyKql').textContent=q||'(empty query)';
+  var spB=document.getElementById('vfySpBlock'), reB=document.getElementById('vfyRestBlock');
+  if(spRoot && q){
+    var page=spRoot+'/_layouts/15/search.aspx/siteall?q='+encodeURIComponent(q);
+    var rest=spRoot+"/_api/search/query?querytext='"+encodeURIComponent(q)+"'&rowlimit=25";
+    var sp=document.getElementById('vfySp'); sp.href=page; sp.textContent=page;
+    var re=document.getElementById('vfyRest'); re.href=rest; re.textContent=rest;
+    spB.style.display=''; reB.style.display='';
+  } else { spB.style.display='none'; reB.style.display='none'; }
+}
+
+function showError(m){var e=document.getElementById('err');e.textContent='Error: '+m;e.style.display='block';}
+function clearError(){document.getElementById('err').style.display='none';}
+function updatePager(total,from,size,more){
+  var p=document.getElementById('pager');
+  if(!total){p.innerHTML='';return;}
+  var start=from+1, end=Math.min(from+size,total);
+  p.innerHTML=' &middot; showing '+start+'&ndash;'+end+' of '+total+
+    '<a class="pg" onclick="page(-1)"'+(from<=0?' style="opacity:.35;pointer-events:none"':'')+'>&#8592; Prev</a>'+
+    '<a class="pg" onclick="page(1)"'+((end>=total&&!more)?' style="opacity:.35;pointer-events:none"':'')+'>Next &#8594;</a>';
+}
+function page(d){
+  var f=document.getElementById('from');
+  var size=parseInt(document.getElementById('size').value,10)||25;
+  var nf=(parseInt(f.value,10)||0)+d*size; if(nf<0)nf=0;
+  f.value=nf; run();
+}
+var FACET_LABELS={fileType:'File type',contentSource:'Source',author:'Author'};
+function renderFacets(resp){
+  var el=document.getElementById('facets'); var html='';
+  activeFilters.forEach(function(a,i){
+    html+='<span class="afchip">'+esc(FACET_LABELS[a.field]||a.field)+': '+esc(a.key)+'<i onclick="dropFilter('+i+')">&times;</i></span>';
+  });
+  var aggs=[]; try{(resp.value[0].hitsContainers||[]).forEach(function(hc){if(hc.aggregations)aggs=aggs.concat(hc.aggregations);});}catch(e){}
+  aggs.forEach(function(a){
+    var buckets=a.buckets||[]; if(!buckets.length) return;
+    var items=buckets.map(function(b){
+      return '<a data-field="'+esc(a.field)+'" data-key="'+esc(b.key)+'" data-tok="'+esc(b.aggregationFilterToken||'')+'" onclick="addFilter(this)"><span>'+esc(b.key)+'</span><span class="bcount">'+b.count+'</span></a>';
+    }).join('');
+    html+='<div class="fdrop"><button class="fdrop-btn" onclick="toggleFdrop(this)">'+esc(FACET_LABELS[a.field]||a.field)+' <span class="caret">&#9662;</span></button><div class="fdrop-menu">'+items+'</div></div>';
+  });
+  el.innerHTML=html;
+}
+function toggleFdrop(btn){ var d=btn.parentElement,open=d.classList.contains('open'); closeFdrops(); if(!open)d.classList.add('open'); }
+function closeFdrops(){ [].forEach.call(document.querySelectorAll('.fdrop.open'),function(d){d.classList.remove('open');}); }
+function addFilter(el){
+  if(!el.dataset.tok)return;
+  activeFilters.push({field:el.dataset.field,key:el.dataset.key,filter:el.dataset.field+':'+el.dataset.tok});
+  run();
+}
+function dropFilter(i){ activeFilters.splice(i,1); run(); }
+
+async function run(){
+  if(!signedIn){ await signin(); if(!signedIn) return; }
+  var cid=connId();
+  if(entities().indexOf('externalItem')>=0&&!cid){
+    showError('Pick a connection to include connector results, or untick Connectors.');
+    return;
+  }
+  var btn=document.getElementById('runBtn');btn.disabled=true;btn.textContent='Running...';
+  var body={
+    queryString:document.getElementById('q').value,
+    entityTypes:entities(),
+    fields:fields(),
+    from:parseInt(document.getElementById('from').value,10)||0,
+    size:parseInt(document.getElementById('size').value,10)||25
+  };
+  if(cid)body.contentSources=['/external/connections/'+cid];
+  var sf=document.getElementById('sortField').value.trim();
+  if(sf)body.sort=[{name:sf,isDescending:document.getElementById('sortDir').value==='true'}];
+  var af=facetFields();
+  if(af.length)body.aggregations=af;
+  if(activeFilters.length)body.aggregationFilters=activeFilters.map(function(a){return a.filter;});
+  renderVerify(body.queryString);
+  try{
+    var r=await fetch('/api/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    var data=await r.json();
+    if(data.request)document.getElementById('reqPre').innerHTML=jsonTree(data.request);
+    document.getElementById('rspPre').innerHTML=jsonTree(data.response!=null?data.response:data);
+    if(!r.ok){
+      var m=(data.response&&data.response.error&&data.response.error.message)||(data.error&&(data.error.message||data.error))||('HTTP '+r.status);
+      showError(m);document.getElementById('res').innerHTML='';document.getElementById('sum').textContent='';updatePager(0,0,0,false);renderFacets({});showTab('rsp');
+    }else{
+      clearError();
+      var ch=collectHits(data.response);
+      renderResults(data.response);
+      renderFacets(data.response);
+      updatePager(ch.total,body.from,body.size,ch.more);
+      showTab('res');
+    }
+  }catch(e){showError(String(e));}
+  btn.disabled=false;btn.textContent='Run query';
+}
+
+// On load: apply saved theme, show default field suggestions, check sign-in state.
+applyTheme((function(){try{return localStorage.getItem('sqt-theme')||'dark';}catch(e){return 'dark';}})());
+setFieldOptions(SP_PRESETS);
+checkMe();
+[].forEach.call(document.querySelectorAll('.ent'),function(c){c.addEventListener('change',updateConn);});
+updateConn();
+document.getElementById('helpDlg').addEventListener('click',function(e){ if(e.target.id==='helpDlg') e.target.close(); });
+</script>
+</body>
+</html>
