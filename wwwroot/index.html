@@ -460,7 +460,7 @@
         <input type="checkbox" name="botcheck" id="fbBot" tabindex="-1" autocomplete="off" style="display:none!important">
         <div class="fbrow">
           <label class="fbf"><span>Name <i>*</i></span><input name="name" id="fbName" required placeholder="Your name"></label>
-          <label class="fbf"><span>Email <em>(optional)</em></span><input type="email" name="email" placeholder="you@example.com"></label>
+          <label class="fbf"><span>Email <i>*</i></span><input type="email" name="email" id="fbEmail" required placeholder="you@example.com"></label>
         </div>
         <label class="fbf"><span>Role / Company <em>(optional)</em></span><input name="role" placeholder="e.g. SharePoint Admin, Contoso"></label>
         <label class="fbf"><span>Your feedback <i>*</i></span><textarea name="message" id="fbMsg" required placeholder="What did you use it for? What worked well, or what would make it better?"></textarea></label>
@@ -938,8 +938,10 @@ document.getElementById('feedbackDlg').addEventListener('click',function(e){ if(
     var bot=form.querySelector('[name="botcheck"]');
     if(bot&&bot.checked)return;
     var name=document.getElementById('fbName').value.trim();
+    var email=document.getElementById('fbEmail').value.trim();
     var msg=document.getElementById('fbMsg').value.trim();
-    if(!name||!msg){ setStatus('Please add your name and a short message.',false); return; }
+    if(!name||!email||!msg){ setStatus('Please add your name, email and a short message.',false); return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ setStatus('Please enter a valid email address.',false); return; }
     var oldHtml=btn.innerHTML;
     btn.disabled=true; btn.innerHTML='Sending…'; statusEl.style.display='none';
     var data=Object.fromEntries(new FormData(form).entries());
