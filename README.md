@@ -7,6 +7,11 @@ Copilot connectors (external items)** from one place, which the old tool cannot.
 
 It runs as a console app that hosts a local web UI in your browser. Nothing leaves your tenant.
 
+![The Microsoft Search Query Tool showing results for a connector query, with scope, fields, paging and refiners on the left and result cards badged with the connector name](docs/screenshots/results.png)
+
+A step-by-step walkthrough is on the blog:
+[Microsoft Search Query Tool for SharePoint, OneDrive and Copilot connectors](https://www.fivenumber.com/microsoft-search-query-tool/).
+
 ## Features
 
 - Query across entity types: `driveItem` (SharePoint/OneDrive), `listItem`, `site`, and
@@ -42,6 +47,11 @@ dotnet run
 
 The browser opens at `http://localhost:5089`. Click the **account circle** (top-right) to sign in
 and consent, then run a query.
+
+The **Request** tab shows the exact `POST /search/query` body being sent, and **Open in Graph
+Explorer** reproduces the same call:
+
+![The Request tab showing the raw Microsoft Graph search/query JSON body, with entity types, query string, fields and the connector content source](docs/screenshots/request-body.png)
 
 ## Configuration
 
