@@ -16,16 +16,16 @@ A step-by-step walkthrough is on the blog:
 
 - Query across entity types: `driveItem` (SharePoint/OneDrive), `listItem`, `site`, and
   `externalItem` (Copilot connectors).
-- **Connection picker** — the tool lists your Copilot connectors, so you pick one instead of pasting
+- **Connection picker**. The tool lists your Copilot connectors, so you pick one instead of pasting
   an id. Results are badged with the actual connector name.
-- **Fields** — request any retrievable property, or load them from a connection's schema.
+- **Fields**. Request any retrievable property, or load them from a connection's schema.
 - **Sort**, **paging** (Prev/Next), and **refiners** (facets with drill-down chips, like Microsoft
   Search).
-- **KQL** — the query box accepts KQL (`filetype:docx`, `Path:"..."`, `author:"..."`, `title:...`,
+- **KQL**. The query box accepts KQL (`filetype:docx`, `Path:"..."`, `author:"..."`, `title:...`,
   `AND/OR/NOT`, prefix wildcards). One-click example chips are provided.
-- **Results**, **Request**, and **Response (raw)** tabs — the raw Graph request and response render
+- **Results**, **Request**, and **Response (raw)** tabs. The raw Graph request and response render
   as a collapsible, syntax-highlighted JSON tree.
-- **Verify** tab — shows the KQL and builds links to reproduce the query in SharePoint enterprise
+- **Verify** tab. Shows the KQL and builds links to reproduce the query in SharePoint enterprise
   search (results in a browser tab).
 - Sign in / sign out / **sign in as different user**, light and dark themes.
 
@@ -81,4 +81,4 @@ consent, and put its client id in `appsettings.json`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
